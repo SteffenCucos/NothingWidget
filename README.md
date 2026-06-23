@@ -1,29 +1,31 @@
 # NothingWidget
 
-NothingWidget is a native Android home-screen widget project for Nothing OS. The goal is to show the next local solar event — sunrise or sunset — based on the user's current location, with a live progress indicator that counts down toward that event.
+NothingWidget is a native Android home-screen widget project for Nothing OS. It shows the next local solar event — sunrise or sunset — based on the user's saved device location, with a progress indicator that advances toward that event.
 
 ## Concept
 
-The widget should answer one simple question at a glance:
+The widget answers one simple question at a glance:
 
 > What's next: sunrise or sunset, and how far away is it?
 
-It is intended to feel native on Nothing OS: minimal, high-contrast, glanceable, and visually aligned with Nothing's dot-matrix design language.
+The visual direction is minimal, high-contrast, glanceable, and loosely aligned with Nothing's monochrome/dot-matrix design language.
 
-## Current scaffold
+## Current status
 
-The repo now contains an initial Android/Kotlin project scaffold:
+The app now has a functional first implementation:
 
-- Gradle Kotlin DSL root project.
-- Android app module under `app/`.
-- Basic launcher `MainActivity`.
+- Android/Kotlin app module.
+- Launcher `MainActivity` with runtime location permission flow.
+- Last-known device location retrieval using Google Play Services Location.
+- Local storage of the latest latitude/longitude.
+- Offline sunrise/sunset calculation using a NOAA-style solar event algorithm.
 - Standard Android App Widget provider.
-- Widget XML layout and provider metadata.
-- WorkManager-based periodic widget refresh skeleton.
-- Placeholder solar-event repository using fixed sunrise/sunset times.
-- Basic dark rounded widget styling.
+- WorkManager-based periodic widget refresh.
+- Tap-to-open-widget behavior.
+- Dark rounded widget UI with event name, time, remaining time, icon, and progress bar.
+- GitHub Actions workflow that assembles the debug APK on push/PR.
 
-## Planned widget behavior
+## Behavior
 
 Example states:
 
@@ -31,30 +33,26 @@ Example states:
 - After sunrise but before sunset: show `Sunset` and the time of the next sunset.
 - After sunset: show the next day's `Sunrise`.
 
-The progress indicator should represent how far the user is between the previous event and the next one. For example, halfway between sunrise and sunset, the progress should be roughly 50% complete.
+The progress indicator represents how far the user is between the previous solar event and the next one. For example, halfway between sunrise and sunset, the progress should be roughly 50% complete.
 
-## Technical direction
-
-Likely implementation path:
-
-- Kotlin.
-- Standard Android App Widgets first; Jetpack Glance can be evaluated later.
-- Android coarse location APIs for approximate location.
-- Local astronomical calculation for sunrise/sunset rather than a network API.
-- WorkManager/widget scheduling for battery-friendly refreshes.
-- Optional Nothing-inspired dot-matrix animation once the functional widget is stable.
+When no location has been saved yet, the widget prompts the user to open the app and enable location.
 
 ## Project structure
 
 ```text
 .
+├── .github/workflows/android.yml
 ├── app/
 │   ├── build.gradle.kts
 │   └── src/main/
 │       ├── AndroidManifest.xml
 │       ├── java/com/steffencucos/nothingwidget/
 │       │   ├── MainActivity.kt
+│       │   ├── location/
+│       │   │   ├── DeviceLocationProvider.kt
+│       │   │   └── LocationStore.kt
 │       │   ├── solar/
+│       │   │   ├── SolarCalculator.kt
 │       │   │   ├── SolarEvent.kt
 │       │   │   └── SolarEventRepository.kt
 │       │   └── widget/
@@ -63,25 +61,34 @@ Likely implementation path:
 │       └── res/
 │           ├── drawable/
 │           ├── layout/
-│           ├── mipmap-anydpi-v26/
 │           ├── values/
 │           └── xml/
 ├── build.gradle.kts
 └── settings.gradle.kts
 ```
 
+## Build
+
+Open the repository in Android Studio and run the `app` configuration, or assemble from the command line with Gradle installed:
+
+```bash
+gradle :app:assembleDebug
+```
+
+A Gradle wrapper has not been committed yet.
+
 ## Next implementation steps
 
-1. Add runtime location permission flow.
-2. Store the last known coarse location.
-3. Replace fixed sunrise/sunset placeholders with real solar calculations.
-4. Add widget tap/refresh behavior.
-5. Improve the widget visual language with Nothing-style typography/dots.
-6. Add tests for event selection and progress calculation.
+1. Add a Gradle wrapper.
+2. Add unit tests for event selection, edge cases, and progress calculation.
+3. Add a widget configuration screen for manual/fallback location.
+4. Improve the visual language with segmented progress or dot-matrix styling.
+5. Add smaller/larger widget layouts.
+6. Consider Jetpack Glance if the standard RemoteViews implementation becomes too limiting.
 
 ## Privacy
 
-The widget should only need approximate location. Location should be used locally where possible and should not be stored or transmitted unless a future implementation explicitly documents why.
+The app uses location locally to calculate sunrise/sunset times. It stores the last known latitude/longitude in private app preferences and does not transmit location to a network API.
 
 ## License
 
