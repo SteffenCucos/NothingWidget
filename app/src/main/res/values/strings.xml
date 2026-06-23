@@ -2,4 +2,11 @@
 <resources>
     <string name="app_name">NothingWidget</string>
     <string name="widget_description">Shows the next sunrise or sunset and progress toward it.</string>
+    <string name="permission_needed_message">NothingWidget needs location permission to calculate your local sunrise and sunset times. The widget uses the last known device location and does not call a weather API.</string>
+    <string name="enable_location_button">Enable location</string>
+    <string name="refresh_location_button">Refresh location</string>
+    <string name="retry_location_button">Try again</string>
+    <string name="location_refreshing">Getting your last known location…</string>
+    <string name="location_unavailable">Location is allowed, but Android did not return a last known location yet. Open Maps once or try again outdoors.</string>
+    <string name="ready_message">Ready. Add the widget from your launcher, or refresh location after travelling.</string>
 </resources>
