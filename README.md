@@ -66,6 +66,7 @@ When no location has been saved yet, the widget prompts the user to open the app
 │           ├── values/
 │           └── xml/
 ├── build.gradle.kts
+├── gradle.properties
 └── settings.gradle.kts
 ```
 
@@ -88,6 +89,8 @@ A Gradle wrapper has not been committed yet.
 ## CI
 
 GitHub Actions runs unit tests and assembles the debug APK on pushes to `main`, pull requests, and manual dispatch.
+
+Last CI trigger note: 2026-06-23T10:10:00-04:00.
 
 ## Next implementation steps
 
