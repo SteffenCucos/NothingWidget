@@ -90,8 +90,6 @@ A Gradle wrapper has not been committed yet.
 
 GitHub Actions runs unit tests and assembles the debug APK on pushes to `main`, pull requests, and manual dispatch.
 
-Last CI trigger note: 2026-06-23T10:10:00-04:00.
-
 ## Next implementation steps
 
 1. Add a Gradle wrapper.
