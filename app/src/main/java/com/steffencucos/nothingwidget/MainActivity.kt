@@ -2,19 +2,118 @@ package com.steffencucos.nothingwidget
 
 import android.Manifest
 import android.os.Bundle
+import android.view.Gravity
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.steffencucos.nothingwidget.location.DeviceLocationProvider
+import com.steffencucos.nothingwidget.location.LocationStore
+import com.steffencucos.nothingwidget.widget.SolarEventWidgetProvider
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var statusText: TextView
+    private lateinit var actionButton: Button
+    private lateinit var locationProvider: DeviceLocationProvider
+    private lateinit var locationStore: LocationStore
+
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions.values.any { it }
+        if (granted) {
+            refreshLocation()
+        } else {
+            renderPermissionNeeded()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        locationProvider = DeviceLocationProvider(this)
+        locationStore = LocationStore(this)
+        setContentView(buildContentView())
+        renderCurrentState()
+    }
 
-        val textView = TextView(this).apply {
-            text = "NothingWidget\n\nAdd the sunrise/sunset widget from your launcher.\n\nLocation permission will be requested by the widget configuration flow in a future iteration."
+    private fun buildContentView(): LinearLayout {
+        statusText = TextView(this).apply {
             textSize = 18f
-            setPadding(48, 72, 48, 48)
+            setTextColor(0xFFFFFFFF.toInt())
         }
 
-        setContentView(textView)
+        actionButton = Button(this).apply {
+            text = getString(R.string.enable_location_button)
+            setOnClickListener { requestOrRefreshLocation() }
+        }
+
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(48, 72, 48, 48)
+            setBackgroundColor(0xFF111111.toInt())
+            addView(statusText)
+            addView(actionButton)
+        }
+    }
+
+    private fun renderCurrentState() {
+        if (!locationProvider.hasLocationPermission()) {
+            renderPermissionNeeded()
+            return
+        }
+
+        if (locationStore.get() == null) {
+            refreshLocation()
+        } else {
+            renderReady()
+        }
+    }
+
+    private fun requestOrRefreshLocation() {
+        if (!locationProvider.hasLocationPermission()) {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            )
+            return
+        }
+
+        refreshLocation()
+    }
+
+    private fun refreshLocation() {
+        statusText.text = getString(R.string.location_refreshing)
+        actionButton.isEnabled = false
+
+        locationProvider.getLastKnownLocation { location ->
+            runOnUiThread {
+                actionButton.isEnabled = true
+                if (location == null) {
+                    statusText.text = getString(R.string.location_unavailable)
+                    actionButton.text = getString(R.string.retry_location_button)
+                    return@runOnUiThread
+                }
+
+                locationStore.save(location)
+                SolarEventWidgetProvider.refreshAll(this)
+                renderReady()
+            }
+        }
+    }
+
+    private fun renderPermissionNeeded() {
+        statusText.text = getString(R.string.permission_needed_message)
+        actionButton.text = getString(R.string.enable_location_button)
+        actionButton.isEnabled = true
+    }
+
+    private fun renderReady() {
+        statusText.text = getString(R.string.ready_message)
+        actionButton.text = getString(R.string.refresh_location_button)
+        actionButton.isEnabled = true
     }
 }
