@@ -26,6 +26,9 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      - name: Compile debug sources
+        run: gradle :app:compileDebugKotlin :app:compileDebugJavaWithJavac --stacktrace --info
+
       - name: Run unit tests
         run: gradle :app:testDebugUnitTest --stacktrace --info
 
