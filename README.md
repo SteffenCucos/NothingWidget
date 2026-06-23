@@ -1,5 +1,7 @@
 # NothingWidget
 
+[![Android CI](https://github.com/SteffenCucos/NothingWidget/actions/workflows/android.yml/badge.svg)](https://github.com/SteffenCucos/NothingWidget/actions/workflows/android.yml)
+
 NothingWidget is a native Android home-screen widget project for Nothing OS. It shows the next local solar event — sunrise or sunset — based on the user's saved device location, with a progress indicator that advances toward that event.
 
 ## Concept
@@ -23,7 +25,7 @@ The app now has a functional first implementation:
 - WorkManager-based periodic widget refresh.
 - Tap-to-open-widget behavior.
 - Dark rounded widget UI with event name, time, remaining time, icon, and progress bar.
-- GitHub Actions workflow that assembles the debug APK on push/PR.
+- GitHub Actions workflow that runs unit tests and assembles the debug APK on push/PR.
 
 ## Behavior
 
@@ -75,7 +77,17 @@ Open the repository in Android Studio and run the `app` configuration, or assemb
 gradle :app:assembleDebug
 ```
 
+Run unit tests with:
+
+```bash
+gradle :app:testDebugUnitTest
+```
+
 A Gradle wrapper has not been committed yet.
+
+## CI
+
+GitHub Actions runs unit tests and assembles the debug APK on pushes to `main`, pull requests, and manual dispatch.
 
 ## Next implementation steps
 
