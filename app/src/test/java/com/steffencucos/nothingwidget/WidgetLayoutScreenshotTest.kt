@@ -2,6 +2,7 @@ package com.steffencucos.nothingwidget
 
 import android.graphics.Color
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import app.cash.paparazzi.DeviceConfig
@@ -30,8 +31,8 @@ class WidgetLayoutScreenshotTest {
         LayoutInflater.from(context).inflate(R.layout.widget_solar_event, container, true)
 
         container.measure(
-            ViewGroup.MeasureSpec.makeMeasureSpec(widthPx, ViewGroup.MeasureSpec.EXACTLY),
-            ViewGroup.MeasureSpec.makeMeasureSpec(heightPx, ViewGroup.MeasureSpec.EXACTLY)
+            View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(heightPx, View.MeasureSpec.EXACTLY)
         )
         container.layout(0, 0, widthPx, heightPx)
 
