@@ -26,14 +26,34 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      - name: Prepare CI log directory
+        run: mkdir -p ci-logs
+
       - name: Compile debug sources
-        run: gradle :app:compileDebugKotlin :app:compileDebugJavaWithJavac --stacktrace --info
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle :app:compileDebugKotlin :app:compileDebugJavaWithJavac --stacktrace --info 2>&1 | tee ci-logs/compile-debug.log
 
       - name: Run unit tests
-        run: gradle :app:testDebugUnitTest --stacktrace --info
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle :app:testDebugUnitTest --stacktrace --info 2>&1 | tee ci-logs/unit-tests.log
 
       - name: Assemble debug APK
-        run: gradle :app:assembleDebug --stacktrace --info
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle :app:assembleDebug --stacktrace --info 2>&1 | tee ci-logs/assemble-debug.log
+
+      - name: Upload Gradle logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-ci-logs
+          path: ci-logs/**
+          if-no-files-found: ignore
 
       - name: Upload test and build reports
         if: always()
