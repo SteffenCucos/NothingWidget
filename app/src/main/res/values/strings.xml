@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NothingWidget</string>
+    <string name="widget_description">Shows the next sunrise or sunset and progress toward it.</string>
+</resources>
