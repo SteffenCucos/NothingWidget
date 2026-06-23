@@ -47,18 +47,20 @@ jobs:
           set -o pipefail
           gradle :app:assembleDebug --stacktrace --info 2>&1 | tee ci-logs/assemble-debug.log
 
-      - name: Install layout preview renderer dependencies
-        run: python -m pip install --upgrade pillow
-
       - name: Render widget layout preview
-        run: python scripts/render_widget_layout.py
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle :app:recordPaparazziDebug --stacktrace --info 2>&1 | tee ci-logs/paparazzi-record.log
+          mkdir -p artifacts/widget-layout-preview
+          find app/src/test/snapshots -name '*.png' -print -exec cp {} artifacts/widget-layout-preview/ \;
 
       - name: Upload widget layout preview
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: widget-layout-preview
-          path: artifacts/widget-layout-preview.png
+          path: artifacts/widget-layout-preview/*.png
           if-no-files-found: error
 
       - name: Upload Gradle logs
@@ -78,4 +80,6 @@ jobs:
             app/build/reports/**
             app/build/test-results/**
             app/build/outputs/apk/debug/**
+            app/build/paparazzi/**
+            app/src/test/snapshots/**
           if-no-files-found: ignore
