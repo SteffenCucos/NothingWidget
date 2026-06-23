@@ -1,12 +1,14 @@
-name: Android build
+name: Android CI
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
-  assemble:
+  build-and-test:
+    name: Build and test
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +25,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: current
+
+      - name: Run unit tests
+        run: gradle :app:testDebugUnitTest
 
       - name: Assemble debug APK
         run: gradle :app:assembleDebug
