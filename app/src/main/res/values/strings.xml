@@ -12,4 +12,5 @@
     <string name="widget_style_title">Widget style</string>
     <string name="widget_style_classic">Clean</string>
     <string name="widget_style_nothing">Nothing-inspired</string>
+    <string name="dot_size_title">Dot text size</string>
 </resources>
