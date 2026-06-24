@@ -5,9 +5,10 @@ import android.os.Bundle
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.SeekBar
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import com.steffencucos.nothingwidget.location.DeviceLocationProvider
 import com.steffencucos.nothingwidget.location.LocationStore
 import com.steffencucos.nothingwidget.widget.SolarEventWidgetProvider
@@ -19,6 +20,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var actionButton: Button
     private lateinit var styleClassicButton: Button
     private lateinit var styleNothingButton: Button
+    private lateinit var dotSizeLabel: TextView
+    private lateinit var dotSizeSlider: SeekBar
     private lateinit var locationProvider: DeviceLocationProvider
     private lateinit var locationStore: LocationStore
 
@@ -40,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(buildContentView())
         renderCurrentState()
         renderStyleState()
+        renderDotSizeState()
     }
 
     private fun buildContentView(): LinearLayout {
@@ -82,6 +86,25 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        dotSizeLabel = TextView(this).apply {
+            textSize = 14f
+            setTextColor(0xFFBDBDBD.toInt())
+        }
+
+        dotSizeSlider = SeekBar(this).apply {
+            max = WidgetPreferences.MAX_DOT_TEXT_SIZE_SP - WidgetPreferences.MIN_DOT_TEXT_SIZE_SP
+            progress = WidgetPreferences.getDotTextSizeSp(this@MainActivity) - WidgetPreferences.MIN_DOT_TEXT_SIZE_SP
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (!fromUser) return
+                    setDotTextSize(WidgetPreferences.MIN_DOT_TEXT_SIZE_SP + progress)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+            })
+        }
+
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
@@ -91,6 +114,8 @@ class MainActivity : AppCompatActivity() {
             addView(actionButton)
             addView(styleTitle)
             addView(styleRow)
+            addView(dotSizeLabel)
+            addView(dotSizeSlider)
         }
     }
 
@@ -147,6 +172,12 @@ class MainActivity : AppCompatActivity() {
         SolarEventWidgetProvider.refreshAll(this)
     }
 
+    private fun setDotTextSize(sizeSp: Int) {
+        WidgetPreferences.setDotTextSizeSp(this, sizeSp)
+        renderDotSizeState()
+        SolarEventWidgetProvider.refreshAll(this)
+    }
+
     private fun renderStyleState() {
         val currentStyle = WidgetPreferences.getStyle(this)
         styleClassicButton.text = styleLabel(
@@ -157,6 +188,15 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.widget_style_nothing),
             currentStyle == WidgetStyle.NOTHING
         )
+    }
+
+    private fun renderDotSizeState() {
+        val sizeSp = WidgetPreferences.getDotTextSizeSp(this)
+        dotSizeLabel.text = "${getString(R.string.dot_size_title)}: ${sizeSp}sp"
+        val targetProgress = sizeSp - WidgetPreferences.MIN_DOT_TEXT_SIZE_SP
+        if (dotSizeSlider.progress != targetProgress) {
+            dotSizeSlider.progress = targetProgress
+        }
     }
 
     private fun styleLabel(label: String, selected: Boolean): String =
