@@ -4,8 +4,10 @@ import android.Manifest
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.Button
+import android.widget.CompoundButton
 import android.widget.LinearLayout
 import android.widget.SeekBar
+import android.widget.Switch
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +24,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var styleNothingButton: Button
     private lateinit var dotSizeLabel: TextView
     private lateinit var dotSizeSlider: SeekBar
+    private lateinit var timeSimulationSwitch: Switch
+    private lateinit var timeSimulationSubtitle: TextView
     private lateinit var locationProvider: DeviceLocationProvider
     private lateinit var locationStore: LocationStore
 
@@ -44,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         renderCurrentState()
         renderStyleState()
         renderDotSizeState()
+        renderTimeSimulationState()
     }
 
     private fun buildContentView(): LinearLayout {
@@ -105,6 +110,21 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        timeSimulationSwitch = Switch(this).apply {
+            text = getString(R.string.time_simulation_title)
+            textSize = 14f
+            setTextColor(0xFFFFFFFF.toInt())
+            setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
+                setTimeSimulationEnabled(isChecked)
+            }
+        }
+
+        timeSimulationSubtitle = TextView(this).apply {
+            text = getString(R.string.time_simulation_subtitle)
+            textSize = 12f
+            setTextColor(0xFFBDBDBD.toInt())
+        }
+
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
@@ -116,6 +136,8 @@ class MainActivity : AppCompatActivity() {
             addView(styleRow)
             addView(dotSizeLabel)
             addView(dotSizeSlider)
+            addView(timeSimulationSwitch)
+            addView(timeSimulationSubtitle)
         }
     }
 
@@ -178,6 +200,12 @@ class MainActivity : AppCompatActivity() {
         SolarEventWidgetProvider.refreshAll(this)
     }
 
+    private fun setTimeSimulationEnabled(enabled: Boolean) {
+        WidgetPreferences.setTimeSimulationEnabled(this, enabled)
+        renderTimeSimulationState()
+        SolarEventWidgetProvider.refreshAll(this)
+    }
+
     private fun renderStyleState() {
         val currentStyle = WidgetPreferences.getStyle(this)
         styleClassicButton.text = styleLabel(
@@ -197,6 +225,14 @@ class MainActivity : AppCompatActivity() {
         if (dotSizeSlider.progress != targetProgress) {
             dotSizeSlider.progress = targetProgress
         }
+    }
+
+    private fun renderTimeSimulationState() {
+        val enabled = WidgetPreferences.isTimeSimulationEnabled(this)
+        if (timeSimulationSwitch.isChecked != enabled) {
+            timeSimulationSwitch.isChecked = enabled
+        }
+        timeSimulationSubtitle.text = getString(R.string.time_simulation_subtitle)
     }
 
     private fun styleLabel(label: String, selected: Boolean): String =
