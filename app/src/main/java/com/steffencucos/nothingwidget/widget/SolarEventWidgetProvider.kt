@@ -62,6 +62,10 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             val event = SolarEventRepository(context).getNextEvent()
+            val layoutId = when (WidgetPreferences.getStyle(context)) {
+                WidgetStyle.CLASSIC -> R.layout.widget_solar_event
+                WidgetStyle.NOTHING -> R.layout.widget_solar_event_nothing
+            }
             val launchIntent = Intent(context, MainActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(
                 context,
@@ -70,7 +74,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val views = RemoteViews(context.packageName, R.layout.widget_solar_event).apply {
+            val views = RemoteViews(context.packageName, layoutId).apply {
                 setTextViewText(R.id.eventStatus, event.statusText.uppercase())
                 setTextViewText(R.id.eventLabel, event.label.uppercase())
                 setTextViewText(R.id.eventTime, event.displayTime.uppercase())
