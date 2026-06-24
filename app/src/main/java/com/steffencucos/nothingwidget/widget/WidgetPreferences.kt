@@ -17,6 +17,7 @@ object WidgetPreferences {
     private const val PREFS_NAME = "nothing_widget_preferences"
     private const val KEY_WIDGET_STYLE = "widget_style"
     private const val KEY_DOT_TEXT_SIZE_SP = "dot_text_size_sp"
+    private const val KEY_ACCENT_COLOR = "accent_color"
     private const val KEY_TIME_SIMULATION_ENABLED = "time_simulation_enabled"
     private const val KEY_TIME_SIMULATION_MULTIPLIER = "time_simulation_multiplier"
     private const val KEY_TIME_SIMULATION_REAL_ANCHOR_MS = "time_simulation_real_anchor_ms"
@@ -53,6 +54,20 @@ object WidgetPreferences {
                 KEY_DOT_TEXT_SIZE_SP,
                 sizeSp.coerceIn(MIN_DOT_TEXT_SIZE_SP, MAX_DOT_TEXT_SIZE_SP)
             )
+            .apply()
+    }
+
+    fun getAccentColor(context: Context): WidgetAccentColor = WidgetAccentColor.fromName(
+        context
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_ACCENT_COLOR, WidgetAccentColor.RED.name)
+    )
+
+    fun setAccentColor(context: Context, accentColor: WidgetAccentColor) {
+        context
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_ACCENT_COLOR, accentColor.name)
             .apply()
     }
 
