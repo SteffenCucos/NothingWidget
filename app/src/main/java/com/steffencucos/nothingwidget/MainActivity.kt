@@ -41,6 +41,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dotSizeLabel: TextView
     private lateinit var dotSizeSlider: SeekBar
     private lateinit var timeSimulationSwitch: Switch
+    private lateinit var timeSpeedLabel: TextView
+    private lateinit var timeSpeedSlider: SeekBar
     private lateinit var timeSimulationSubtitle: TextView
 
     private val previewHandler = Handler(Looper.getMainLooper())
@@ -209,8 +211,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        timeSpeedLabel = TextView(this).apply {
+            textSize = 14f
+            setTextColor(0xFFBDBDBD.toInt())
+        }
+
+        timeSpeedSlider = SeekBar(this).apply {
+            max = WidgetPreferences.MAX_TIME_SIMULATION_MULTIPLIER - WidgetPreferences.MIN_TIME_SIMULATION_MULTIPLIER
+            progress = WidgetPreferences.getTimeSimulationMultiplier(this@MainActivity) - WidgetPreferences.MIN_TIME_SIMULATION_MULTIPLIER
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (!fromUser) return
+                    setTimeSimulationMultiplier(WidgetPreferences.MIN_TIME_SIMULATION_MULTIPLIER + progress)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+            })
+        }
+
         timeSimulationSubtitle = TextView(this).apply {
-            text = getString(R.string.time_simulation_subtitle)
             textSize = 12f
             setTextColor(0xFFBDBDBD.toInt())
         }
@@ -229,6 +249,8 @@ class MainActivity : AppCompatActivity() {
             addView(dotSizeLabel)
             addView(dotSizeSlider)
             addView(timeSimulationSwitch)
+            addView(timeSpeedLabel)
+            addView(timeSpeedSlider)
             addView(timeSimulationSubtitle)
         }
     }
@@ -358,6 +380,12 @@ class MainActivity : AppCompatActivity() {
         SolarEventWidgetProvider.refreshAll(this)
     }
 
+    private fun setTimeSimulationMultiplier(multiplier: Int) {
+        WidgetPreferences.setTimeSimulationMultiplier(this, multiplier)
+        renderTimeSimulationState()
+        SolarEventWidgetProvider.refreshAll(this)
+    }
+
     private fun renderStyleState() {
         val currentStyle = WidgetPreferences.getStyle(this)
         styleClassicButton.text = styleLabel(getString(R.string.widget_style_classic), currentStyle == WidgetStyle.CLASSIC)
@@ -375,10 +403,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun renderTimeSimulationState() {
         val enabled = WidgetPreferences.isTimeSimulationEnabled(this)
+        val multiplier = WidgetPreferences.getTimeSimulationMultiplier(this)
         if (timeSimulationSwitch.isChecked != enabled) {
             timeSimulationSwitch.isChecked = enabled
         }
-        timeSimulationSubtitle.text = getString(R.string.time_simulation_subtitle)
+        timeSpeedLabel.text = "Time speed: ${multiplier}×"
+        val targetProgress = multiplier - WidgetPreferences.MIN_TIME_SIMULATION_MULTIPLIER
+        if (timeSpeedSlider.progress != targetProgress) {
+            timeSpeedSlider.progress = targetProgress
+        }
+        timeSimulationSubtitle.text = "Full solar day in about ${formatSimulationDayLength(multiplier)}"
+    }
+
+    private fun formatSimulationDayLength(multiplier: Int): String {
+        val minutes = 1440.0 / multiplier.toDouble()
+        return if (minutes >= 60.0) {
+            val hours = (minutes / 60.0).toInt()
+            val remainingMinutes = (minutes - hours * 60).toInt()
+            if (remainingMinutes == 0) "${hours}h" else "${hours}h ${remainingMinutes}m"
+        } else {
+            "${kotlin.math.round(minutes).toInt()}m"
+        }
     }
 
     private fun styleLabel(label: String, selected: Boolean): String =
