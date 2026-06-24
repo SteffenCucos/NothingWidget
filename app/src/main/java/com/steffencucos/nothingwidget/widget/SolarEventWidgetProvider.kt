@@ -26,6 +26,13 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
         schedulePeriodicRefresh(context)
     }
 
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == SYSTEM_CONFIGURATION_ACTION) {
+            refreshAll(context)
+        }
+    }
+
     override fun onEnabled(context: Context) {
         schedulePeriodicRefresh(context)
     }
@@ -36,6 +43,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val WORK_NAME = "solar-event-widget-refresh"
+        private const val SYSTEM_CONFIGURATION_ACTION = "android.intent.action.CONFIGURATION_CHANGED"
 
         fun refreshAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
