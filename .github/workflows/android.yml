@@ -47,6 +47,14 @@ jobs:
           set -o pipefail
           gradle :app:assembleDebug --stacktrace --info 2>&1 | tee ci-logs/assemble-debug.log
 
+      - name: Assemble sideloadable APK
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle :app:assembleRelease --stacktrace --info 2>&1 | tee ci-logs/assemble-release.log
+          mkdir -p artifacts/sideload-apk
+          cp app/build/outputs/apk/release/app-release.apk artifacts/sideload-apk/NothingWidget.apk
+
       - name: Render widget layout preview
         shell: bash
         run: |
@@ -54,6 +62,14 @@ jobs:
           gradle :app:recordPaparazziDebug --stacktrace --info 2>&1 | tee ci-logs/paparazzi-record.log
           mkdir -p artifacts/widget-layout-preview
           find app/src/test/snapshots -name '*.png' -print -exec cp {} artifacts/widget-layout-preview/ \;
+
+      - name: Upload sideloadable APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NothingWidget-apk
+          path: artifacts/sideload-apk/NothingWidget.apk
+          if-no-files-found: error
 
       - name: Upload widget layout preview
         if: always()
@@ -80,6 +96,7 @@ jobs:
             app/build/reports/**
             app/build/test-results/**
             app/build/outputs/apk/debug/**
+            app/build/outputs/apk/release/**
             app/build/paparazzi/**
             app/src/test/snapshots/**
           if-no-files-found: ignore
