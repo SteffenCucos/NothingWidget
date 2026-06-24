@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_nothing_background"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="12dp"
+    android:paddingTop="12dp"
+    android:paddingRight="10dp"
+    android:paddingBottom="12dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:text="●"
+                android:textColor="@color/widget_nothing_accent_red"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/eventStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="monospace"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.1"
+                android:maxLines="1"
+                android:text="NEXT"
+                android:textAllCaps="true"
+                android:textColor="@color/widget_nothing_text_tertiary"
+                android:textSize="8sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/eventLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.16"
+            android:maxLines="1"
+            android:text="SUNSET"
+            android:textAllCaps="true"
+            android:textColor="@color/widget_nothing_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.18"
+            android:maxLines="1"
+            android:text="········"
+            android:textColor="@color/widget_nothing_text_tertiary"
+            android:textSize="8sp" />
+
+        <TextView
+            android:id="@+id/eventTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="8:45 PM"
+            android:textColor="@color/widget_nothing_text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/eventRemaining"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="2h 14m left"
+            android:textColor="@color/widget_nothing_text_secondary"
+            android:textSize="10sp" />
+
+        <ProgressBar
+            android:id="@+id/eventProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="7dp"
+            android:max="100"
+            android:progress="50"
+            android:progressDrawable="@drawable/widget_nothing_progress" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp">
+
+            <TextView
+                android:id="@+id/eventIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/widget_nothing_icon_ring"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="◐"
+                android:textColor="@color/widget_nothing_text_primary"
+                android:textSize="21sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|top"
+                android:includeFontPadding="false"
+                android:text="●"
+                android:textColor="@color/widget_nothing_accent_red"
+                android:textSize="6sp" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/progressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:text="50%"
+            android:textColor="@color/widget_nothing_accent_red"
+            android:textSize="10sp" />
+    </LinearLayout>
+</LinearLayout>
