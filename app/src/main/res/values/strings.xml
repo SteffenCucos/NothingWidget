@@ -9,4 +9,7 @@
     <string name="location_refreshing">Getting your last known location…</string>
     <string name="location_unavailable">Location is allowed, but Android did not return a last known location yet. Open Maps once or try again outdoors.</string>
     <string name="ready_message">Ready. Add the widget from your launcher, or refresh location after travelling.</string>
+    <string name="widget_style_title">Widget style</string>
+    <string name="widget_style_classic">Clean</string>
+    <string name="widget_style_nothing">Nothing-inspired</string>
 </resources>
