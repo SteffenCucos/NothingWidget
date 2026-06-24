@@ -5,9 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.annotation.LayoutRes
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
+import com.steffencucos.nothingwidget.widget.DotMatrixText
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,12 +33,16 @@ class WidgetLayoutScreenshotTest {
         snapshotWidgetLayout(
             layoutId = R.layout.widget_solar_event_nothing,
             snapshotName = "widget_solar_event_2x2_nothing"
-        )
+        ) { container ->
+            container.findViewById<TextView>(R.id.eventLabel).text = DotMatrixText.render("SUNRISE")
+            container.findViewById<TextView>(R.id.eventTime).text = DotMatrixText.render("5:36 AM")
+        }
     }
 
     private fun snapshotWidgetLayout(
         @LayoutRes layoutId: Int,
-        snapshotName: String
+        snapshotName: String,
+        configure: (FrameLayout) -> Unit = {}
     ) {
         val context = paparazzi.context
         val widthPx = context.dp(160)
@@ -48,6 +54,7 @@ class WidgetLayoutScreenshotTest {
         }
 
         LayoutInflater.from(context).inflate(layoutId, container, true)
+        configure(container)
 
         container.measure(
             View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY),
