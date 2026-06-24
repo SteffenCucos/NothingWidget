@@ -89,16 +89,12 @@
         android:gravity="center"
         android:orientation="vertical">
 
-        <TextView
+        <ImageView
             android:id="@+id/eventIcon"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="@drawable/widget_icon_ring"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:text="◐"
-            android:textColor="@color/widget_text_primary"
-            android:textSize="21sp" />
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
 
         <TextView
             android:id="@+id/progressText"
