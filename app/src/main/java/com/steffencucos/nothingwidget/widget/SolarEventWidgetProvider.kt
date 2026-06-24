@@ -62,7 +62,8 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             val event = SolarEventRepository(context).getNextEvent()
-            val layoutId = when (WidgetPreferences.getStyle(context)) {
+            val style = WidgetPreferences.getStyle(context)
+            val layoutId = when (style) {
                 WidgetStyle.CLASSIC -> R.layout.widget_solar_event
                 WidgetStyle.NOTHING -> R.layout.widget_solar_event_nothing
             }
@@ -76,8 +77,13 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
 
             val views = RemoteViews(context.packageName, layoutId).apply {
                 setTextViewText(R.id.eventStatus, event.statusText.uppercase())
-                setTextViewText(R.id.eventLabel, event.label.uppercase())
-                setTextViewText(R.id.eventTime, event.displayTime.uppercase())
+                if (style == WidgetStyle.NOTHING) {
+                    setTextViewText(R.id.eventLabel, DotMatrixText.render(event.label, maxCharacters = 7))
+                    setTextViewText(R.id.eventTime, DotMatrixText.render(event.displayTime, maxCharacters = 7))
+                } else {
+                    setTextViewText(R.id.eventLabel, event.label.uppercase())
+                    setTextViewText(R.id.eventTime, event.displayTime.uppercase())
+                }
                 setTextViewText(R.id.eventRemaining, event.timeRemaining)
                 setTextViewText(R.id.eventIcon, event.iconText)
                 setTextViewText(R.id.progressText, "${event.progressPercent}%")
