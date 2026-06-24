@@ -63,10 +63,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
         ) {
             val event = SolarEventRepository(context).getNextEvent()
             val style = WidgetPreferences.getStyle(context)
-            val layoutId = when (style) {
-                WidgetStyle.CLASSIC -> R.layout.widget_solar_event
-                WidgetStyle.NOTHING -> R.layout.widget_solar_event_nothing
-            }
+            val layoutId = widgetLayout(context, style)
             val launchIntent = Intent(context, MainActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(
                 context,
@@ -92,6 +89,12 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             }
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        private fun widgetLayout(context: Context, style: WidgetStyle): Int {
+            if (style == WidgetStyle.CLASSIC) return R.layout.widget_solar_event
+            val mode = context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            return if (mode == android.content.res.Configuration.UI_MODE_NIGHT_YES) R.layout.widget_solar_event_nothing else R.layout.widget_solar_event_nothing_light
         }
 
         private fun schedulePeriodicRefresh(context: Context) {
