@@ -18,10 +18,10 @@ class WidgetLayoutScreenshotTest {
     )
 
     @Test
-    fun widgetSolarEventDefaultState() {
+    fun widgetSolarEventDefaultStateFitsTwoByTwo() {
         val context = paparazzi.context
-        val widthPx = context.dp(260)
-        val heightPx = context.dp(110)
+        val widthPx = context.dp(160)
+        val heightPx = context.dp(160)
 
         val container = FrameLayout(context).apply {
             setBackgroundColor(Color.TRANSPARENT)
@@ -36,7 +36,7 @@ class WidgetLayoutScreenshotTest {
         )
         container.layout(0, 0, widthPx, heightPx)
 
-        paparazzi.snapshot(container, "widget_solar_event_default")
+        paparazzi.snapshot(container, "widget_solar_event_2x2_default")
     }
 
     private fun android.content.Context.dp(value: Int): Int =
