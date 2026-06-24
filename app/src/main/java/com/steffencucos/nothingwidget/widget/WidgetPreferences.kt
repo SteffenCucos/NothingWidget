@@ -9,12 +9,16 @@ object WidgetPreferences {
     const val MIN_DOT_TEXT_SIZE_SP = 5
     const val MAX_DOT_TEXT_SIZE_SP = 10
     const val DEFAULT_DOT_TEXT_SIZE_SP = 7
-    const val TIME_SIMULATION_MULTIPLIER = 60L
+
+    const val MIN_TIME_SIMULATION_MULTIPLIER = 1
+    const val MAX_TIME_SIMULATION_MULTIPLIER = 240
+    const val DEFAULT_TIME_SIMULATION_MULTIPLIER = 60
 
     private const val PREFS_NAME = "nothing_widget_preferences"
     private const val KEY_WIDGET_STYLE = "widget_style"
     private const val KEY_DOT_TEXT_SIZE_SP = "dot_text_size_sp"
     private const val KEY_TIME_SIMULATION_ENABLED = "time_simulation_enabled"
+    private const val KEY_TIME_SIMULATION_MULTIPLIER = "time_simulation_multiplier"
     private const val KEY_TIME_SIMULATION_REAL_ANCHOR_MS = "time_simulation_real_anchor_ms"
     private const val KEY_TIME_SIMULATION_CLOCK_ANCHOR_MS = "time_simulation_clock_anchor_ms"
 
@@ -57,13 +61,27 @@ object WidgetPreferences {
         .getBoolean(KEY_TIME_SIMULATION_ENABLED, false)
 
     fun setTimeSimulationEnabled(context: Context, enabled: Boolean) {
-        val nowMs = System.currentTimeMillis()
+        resetTimeSimulationAnchor(context, enabled)
+    }
+
+    fun getTimeSimulationMultiplier(context: Context): Int = context
+        .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getInt(KEY_TIME_SIMULATION_MULTIPLIER, DEFAULT_TIME_SIMULATION_MULTIPLIER)
+        .coerceIn(MIN_TIME_SIMULATION_MULTIPLIER, MAX_TIME_SIMULATION_MULTIPLIER)
+
+    fun setTimeSimulationMultiplier(context: Context, multiplier: Int) {
+        val enabled = isTimeSimulationEnabled(context)
+        val simulatedNowMs = currentWidgetTime(context).toInstant().toEpochMilli()
         context
             .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
+            .putInt(
+                KEY_TIME_SIMULATION_MULTIPLIER,
+                multiplier.coerceIn(MIN_TIME_SIMULATION_MULTIPLIER, MAX_TIME_SIMULATION_MULTIPLIER)
+            )
+            .putLong(KEY_TIME_SIMULATION_REAL_ANCHOR_MS, System.currentTimeMillis())
+            .putLong(KEY_TIME_SIMULATION_CLOCK_ANCHOR_MS, simulatedNowMs)
             .putBoolean(KEY_TIME_SIMULATION_ENABLED, enabled)
-            .putLong(KEY_TIME_SIMULATION_REAL_ANCHOR_MS, nowMs)
-            .putLong(KEY_TIME_SIMULATION_CLOCK_ANCHOR_MS, nowMs)
             .apply()
     }
 
@@ -74,8 +92,19 @@ object WidgetPreferences {
         val realAnchorMs = prefs.getLong(KEY_TIME_SIMULATION_REAL_ANCHOR_MS, System.currentTimeMillis())
         val clockAnchorMs = prefs.getLong(KEY_TIME_SIMULATION_CLOCK_ANCHOR_MS, realAnchorMs)
         val elapsedRealMs = (System.currentTimeMillis() - realAnchorMs).coerceAtLeast(0L)
-        val simulatedMs = clockAnchorMs + elapsedRealMs * TIME_SIMULATION_MULTIPLIER
+        val simulatedMs = clockAnchorMs + elapsedRealMs * getTimeSimulationMultiplier(context).toLong()
 
         return Instant.ofEpochMilli(simulatedMs).atZone(ZoneId.systemDefault())
+    }
+
+    private fun resetTimeSimulationAnchor(context: Context, enabled: Boolean) {
+        val nowMs = System.currentTimeMillis()
+        context
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_TIME_SIMULATION_ENABLED, enabled)
+            .putLong(KEY_TIME_SIMULATION_REAL_ANCHOR_MS, nowMs)
+            .putLong(KEY_TIME_SIMULATION_CLOCK_ANCHOR_MS, nowMs)
+            .apply()
     }
 }
