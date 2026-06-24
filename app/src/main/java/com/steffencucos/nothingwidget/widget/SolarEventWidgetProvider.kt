@@ -1,5 +1,6 @@
 package com.steffencucos.nothingwidget.widget
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -23,27 +24,31 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
         appWidgetIds.forEach { widgetId ->
             updateWidget(context, appWidgetManager, widgetId)
         }
-        schedulePeriodicRefresh(context)
+        scheduleRefreshes(context)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (intent.action == SYSTEM_CONFIGURATION_ACTION) {
+        if (intent.action == SYSTEM_CONFIGURATION_ACTION || intent.action == ACTION_SIMULATION_TICK) {
             refreshAll(context)
         }
     }
 
     override fun onEnabled(context: Context) {
-        schedulePeriodicRefresh(context)
+        scheduleRefreshes(context)
     }
 
     override fun onDisabled(context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+        cancelSimulationRefresh(context)
     }
 
     companion object {
         private const val WORK_NAME = "solar-event-widget-refresh"
         private const val SYSTEM_CONFIGURATION_ACTION = "android.intent.action.CONFIGURATION_CHANGED"
+        private const val ACTION_SIMULATION_TICK = "com.steffencucos.nothingwidget.action.SIMULATION_TICK"
+        private const val SIMULATION_REFRESH_INTERVAL_MS = 15_000L
+        private const val SIMULATION_ALARM_REQUEST_CODE = 60
 
         fun refreshAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -53,7 +58,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             widgetIds.forEach { widgetId ->
                 updateWidget(context, manager, widgetId)
             }
-            schedulePeriodicRefresh(context)
+            scheduleRefreshes(context)
         }
 
         fun updateWidget(
@@ -61,7 +66,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            val event = SolarEventRepository(context).getNextEvent()
+            val event = SolarEventRepository(context).getNextEvent(WidgetPreferences.currentWidgetTime(context))
             val style = WidgetPreferences.getStyle(context)
             val layoutId = widgetLayout(context, style)
             val launchIntent = Intent(context, MainActivity::class.java)
@@ -100,6 +105,11 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             return if (mode == android.content.res.Configuration.UI_MODE_NIGHT_YES) R.layout.widget_solar_event_nothing else R.layout.widget_solar_event_nothing_light
         }
 
+        private fun scheduleRefreshes(context: Context) {
+            schedulePeriodicRefresh(context)
+            scheduleSimulationRefresh(context)
+        }
+
         private fun schedulePeriodicRefresh(context: Context) {
             val request = PeriodicWorkRequestBuilder<SolarEventWidgetWorker>(
                 Duration.ofMinutes(30)
@@ -109,6 +119,37 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
                 WORK_NAME,
                 ExistingPeriodicWorkPolicy.UPDATE,
                 request
+            )
+        }
+
+        private fun scheduleSimulationRefresh(context: Context) {
+            if (!WidgetPreferences.isTimeSimulationEnabled(context)) {
+                cancelSimulationRefresh(context)
+                return
+            }
+
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.set(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + SIMULATION_REFRESH_INTERVAL_MS,
+                simulationPendingIntent(context)
+            )
+        }
+
+        private fun cancelSimulationRefresh(context: Context) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(simulationPendingIntent(context))
+        }
+
+        private fun simulationPendingIntent(context: Context): PendingIntent {
+            val intent = Intent(context, SolarEventWidgetProvider::class.java).apply {
+                action = ACTION_SIMULATION_TICK
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                SIMULATION_ALARM_REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
     }
