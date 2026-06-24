@@ -6,6 +6,8 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.os.Build
 import android.widget.RemoteViews
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -80,11 +82,13 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, layoutId).apply {
                 setTextViewText(R.id.eventStatus, event.statusText.uppercase())
                 if (style == WidgetStyle.NOTHING) {
+                    val accentColor = WidgetPreferences.getAccentColor(context).argb
                     val dotTextSizeSp = WidgetPreferences.getDotTextSizeSp(context).toFloat()
                     setTextViewText(R.id.eventLabel, DotMatrixText.render(event.label, maxCharacters = 7))
                     setTextViewText(R.id.eventTime, DotMatrixText.render(event.displayTime, maxCharacters = 7))
                     setTextViewTextSize(R.id.eventLabel, android.util.TypedValue.COMPLEX_UNIT_SP, dotTextSizeSp)
                     setTextViewTextSize(R.id.eventTime, android.util.TypedValue.COMPLEX_UNIT_SP, dotTextSizeSp)
+                    applyAccentColor(accentColor)
                 } else {
                     setTextViewText(R.id.eventLabel, event.label.uppercase())
                     setTextViewText(R.id.eventTime, event.displayTime.uppercase())
@@ -97,6 +101,19 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             }
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        private fun RemoteViews.applyAccentColor(accentColor: Int) {
+            setTextColor(R.id.statusAccentDot, accentColor)
+            setTextColor(R.id.iconAccentDot, accentColor)
+            setTextColor(R.id.progressText, accentColor)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setColorStateList(
+                    R.id.eventProgress,
+                    "setProgressTintList",
+                    ColorStateList.valueOf(accentColor)
+                )
+            }
         }
 
         private fun widgetLayout(context: Context, style: WidgetStyle): Int {
