@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.annotation.LayoutRes
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import org.junit.Rule
@@ -18,7 +19,25 @@ class WidgetLayoutScreenshotTest {
     )
 
     @Test
-    fun widgetSolarEventDefaultStateFitsTwoByTwo() {
+    fun cleanWidgetDefaultStateFitsTwoByTwo() {
+        snapshotWidgetLayout(
+            layoutId = R.layout.widget_solar_event,
+            snapshotName = "widget_solar_event_2x2_clean"
+        )
+    }
+
+    @Test
+    fun nothingWidgetDefaultStateFitsTwoByTwo() {
+        snapshotWidgetLayout(
+            layoutId = R.layout.widget_solar_event_nothing,
+            snapshotName = "widget_solar_event_2x2_nothing"
+        )
+    }
+
+    private fun snapshotWidgetLayout(
+        @LayoutRes layoutId: Int,
+        snapshotName: String
+    ) {
         val context = paparazzi.context
         val widthPx = context.dp(160)
         val heightPx = context.dp(160)
@@ -28,7 +47,7 @@ class WidgetLayoutScreenshotTest {
             layoutParams = ViewGroup.LayoutParams(widthPx, heightPx)
         }
 
-        LayoutInflater.from(context).inflate(R.layout.widget_solar_event, container, true)
+        LayoutInflater.from(context).inflate(layoutId, container, true)
 
         container.measure(
             View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY),
@@ -36,7 +55,7 @@ class WidgetLayoutScreenshotTest {
         )
         container.layout(0, 0, widthPx, heightPx)
 
-        paparazzi.snapshot(container, "widget_solar_event_2x2_default")
+        paparazzi.snapshot(container, snapshotName)
     }
 
     private fun android.content.Context.dp(value: Int): Int =
