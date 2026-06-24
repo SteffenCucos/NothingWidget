@@ -75,8 +75,11 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, layoutId).apply {
                 setTextViewText(R.id.eventStatus, event.statusText.uppercase())
                 if (style == WidgetStyle.NOTHING) {
+                    val dotTextSizeSp = WidgetPreferences.getDotTextSizeSp(context).toFloat()
                     setTextViewText(R.id.eventLabel, DotMatrixText.render(event.label, maxCharacters = 7))
                     setTextViewText(R.id.eventTime, DotMatrixText.render(event.displayTime, maxCharacters = 7))
+                    setTextViewTextSize(R.id.eventLabel, android.util.TypedValue.COMPLEX_UNIT_SP, dotTextSizeSp)
+                    setTextViewTextSize(R.id.eventTime, android.util.TypedValue.COMPLEX_UNIT_SP, dotTextSizeSp)
                 } else {
                     setTextViewText(R.id.eventLabel, event.label.uppercase())
                     setTextViewText(R.id.eventTime, event.displayTime.uppercase())
