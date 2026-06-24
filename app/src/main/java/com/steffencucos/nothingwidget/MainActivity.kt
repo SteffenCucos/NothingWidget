@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.CompoundButton
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.SeekBar
@@ -22,6 +23,7 @@ import com.steffencucos.nothingwidget.location.DeviceLocationProvider
 import com.steffencucos.nothingwidget.location.LocationStore
 import com.steffencucos.nothingwidget.solar.SolarEventRepository
 import com.steffencucos.nothingwidget.widget.DotMatrixText
+import com.steffencucos.nothingwidget.widget.PhaseWatchIconRenderer
 import com.steffencucos.nothingwidget.widget.SolarEventWidgetProvider
 import com.steffencucos.nothingwidget.widget.WidgetAccentColor
 import com.steffencucos.nothingwidget.widget.WidgetPreferences
@@ -304,8 +306,17 @@ class MainActivity : AppCompatActivity() {
         val view = previewView ?: return
         val event = solarEventRepository.getNextEvent(WidgetPreferences.currentWidgetTime(this))
         val style = WidgetPreferences.getStyle(this)
+        val accentColor = WidgetPreferences.getAccentColor(this).argb
+        val iconSizeDp = if (style == WidgetStyle.NOTHING) 34 else 40
+        val iconBitmap = PhaseWatchIconRenderer.render(
+            sizePx = dp(iconSizeDp),
+            phase = phaseFor(event.label, event.progressPercent),
+            darkMode = isDarkMode(),
+            accentColor = accentColor
+        )
 
         view.findViewById<TextView>(R.id.eventStatus)?.text = event.statusText.uppercase()
+        view.findViewById<ImageView>(R.id.eventIcon)?.setImageBitmap(iconBitmap)
         if (style == WidgetStyle.NOTHING) {
             val dotTextSizeSp = WidgetPreferences.getDotTextSizeSp(this).toFloat()
             view.findViewById<TextView>(R.id.eventLabel)?.apply {
@@ -316,13 +327,12 @@ class MainActivity : AppCompatActivity() {
                 text = DotMatrixText.render(event.displayTime, maxCharacters = 7)
                 textSize = dotTextSizeSp
             }
-            applyAccentColorToPreview(view, WidgetPreferences.getAccentColor(this).argb)
+            applyAccentColorToPreview(view, accentColor)
         } else {
             view.findViewById<TextView>(R.id.eventLabel)?.text = event.label.uppercase()
             view.findViewById<TextView>(R.id.eventTime)?.text = event.displayTime.uppercase()
         }
         view.findViewById<TextView>(R.id.eventRemaining)?.text = event.timeRemaining
-        view.findViewById<TextView>(R.id.eventIcon)?.text = event.iconText
         view.findViewById<TextView>(R.id.progressText)?.text = "${event.progressPercent}%"
         view.findViewById<ProgressBar>(R.id.eventProgress)?.progress = event.progressPercent
     }
@@ -349,13 +359,17 @@ class MainActivity : AppCompatActivity() {
     private fun widgetLayout(): Int {
         val style = WidgetPreferences.getStyle(this)
         if (style == WidgetStyle.CLASSIC) return R.layout.widget_solar_event
+        return if (isDarkMode()) R.layout.widget_solar_event_nothing else R.layout.widget_solar_event_nothing_light
+    }
 
+    private fun phaseFor(label: String, progressPercent: Int): Float {
+        val progress = progressPercent.coerceIn(0, 100) / 100f
+        return if (label.uppercase() == "SUNSET") progress * 0.5f else 0.5f + progress * 0.5f
+    }
+
+    private fun isDarkMode(): Boolean {
         val mode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-        return if (mode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
-            R.layout.widget_solar_event_nothing
-        } else {
-            R.layout.widget_solar_event_nothing_light
-        }
+        return mode == android.content.res.Configuration.UI_MODE_NIGHT_YES
     }
 
     private fun renderCurrentState() {
