@@ -1,6 +1,7 @@
 package com.steffencucos.nothingwidget
 
 import android.Manifest
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +23,7 @@ import com.steffencucos.nothingwidget.location.LocationStore
 import com.steffencucos.nothingwidget.solar.SolarEventRepository
 import com.steffencucos.nothingwidget.widget.DotMatrixText
 import com.steffencucos.nothingwidget.widget.SolarEventWidgetProvider
+import com.steffencucos.nothingwidget.widget.WidgetAccentColor
 import com.steffencucos.nothingwidget.widget.WidgetPreferences
 import com.steffencucos.nothingwidget.widget.WidgetStyle
 
@@ -38,6 +40,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var actionButton: Button
     private lateinit var styleClassicButton: Button
     private lateinit var styleNothingButton: Button
+    private lateinit var accentColorLabel: TextView
+    private val accentColorButtons = mutableMapOf<WidgetAccentColor, Button>()
     private lateinit var dotSizeLabel: TextView
     private lateinit var dotSizeSlider: SeekBar
     private lateinit var timeSimulationSwitch: Switch
@@ -132,11 +136,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(buildConfigurationView())
         renderCurrentState()
         renderStyleState()
+        renderAccentColorState()
         renderDotSizeState()
         renderTimeSimulationState()
     }
 
     private fun buildConfigurationView(): LinearLayout {
+        accentColorButtons.clear()
+
         val backButton = Button(this).apply {
             text = "Back to preview"
             setOnClickListener { showPreviewScreen() }
@@ -179,6 +186,32 @@ class MainActivity : AppCompatActivity() {
             gravity = Gravity.CENTER_VERTICAL
             addView(styleClassicButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             addView(styleNothingButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+
+        accentColorLabel = TextView(this).apply {
+            textSize = 14f
+            setTextColor(0xFFBDBDBD.toInt())
+        }
+
+        val accentColorGrid = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            WidgetAccentColor.entries.chunked(4).forEach { rowColors ->
+                val row = LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    rowColors.forEach { accentColor ->
+                        val button = Button(this@MainActivity).apply {
+                            text = accentColor.displayName
+                            setTextColor(textColorForBackground(accentColor.argb))
+                            setBackgroundColor(accentColor.argb)
+                            setOnClickListener { setAccentColor(accentColor) }
+                        }
+                        accentColorButtons[accentColor] = button
+                        addView(button, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                    }
+                }
+                addView(row)
+            }
         }
 
         dotSizeLabel = TextView(this).apply {
@@ -246,6 +279,8 @@ class MainActivity : AppCompatActivity() {
             addView(actionButton)
             addView(styleTitle)
             addView(styleRow)
+            addView(accentColorLabel)
+            addView(accentColorGrid)
             addView(dotSizeLabel)
             addView(dotSizeSlider)
             addView(timeSimulationSwitch)
@@ -281,6 +316,7 @@ class MainActivity : AppCompatActivity() {
                 text = DotMatrixText.render(event.displayTime, maxCharacters = 7)
                 textSize = dotTextSizeSp
             }
+            applyAccentColorToPreview(view, WidgetPreferences.getAccentColor(this).argb)
         } else {
             view.findViewById<TextView>(R.id.eventLabel)?.text = event.label.uppercase()
             view.findViewById<TextView>(R.id.eventTime)?.text = event.displayTime.uppercase()
@@ -289,6 +325,13 @@ class MainActivity : AppCompatActivity() {
         view.findViewById<TextView>(R.id.eventIcon)?.text = event.iconText
         view.findViewById<TextView>(R.id.progressText)?.text = "${event.progressPercent}%"
         view.findViewById<ProgressBar>(R.id.eventProgress)?.progress = event.progressPercent
+    }
+
+    private fun applyAccentColorToPreview(view: View, accentColor: Int) {
+        view.findViewById<TextView>(R.id.statusAccentDot)?.setTextColor(accentColor)
+        view.findViewById<TextView>(R.id.iconAccentDot)?.setTextColor(accentColor)
+        view.findViewById<TextView>(R.id.progressText)?.setTextColor(accentColor)
+        view.findViewById<ProgressBar>(R.id.eventProgress)?.progressTintList = ColorStateList.valueOf(accentColor)
     }
 
     private fun rebuildPreviewIfNeeded(force: Boolean = false) {
@@ -368,6 +411,12 @@ class MainActivity : AppCompatActivity() {
         SolarEventWidgetProvider.refreshAll(this)
     }
 
+    private fun setAccentColor(accentColor: WidgetAccentColor) {
+        WidgetPreferences.setAccentColor(this, accentColor)
+        renderAccentColorState()
+        SolarEventWidgetProvider.refreshAll(this)
+    }
+
     private fun setDotTextSize(sizeSp: Int) {
         WidgetPreferences.setDotTextSizeSp(this, sizeSp)
         renderDotSizeState()
@@ -390,6 +439,14 @@ class MainActivity : AppCompatActivity() {
         val currentStyle = WidgetPreferences.getStyle(this)
         styleClassicButton.text = styleLabel(getString(R.string.widget_style_classic), currentStyle == WidgetStyle.CLASSIC)
         styleNothingButton.text = styleLabel(getString(R.string.widget_style_nothing), currentStyle == WidgetStyle.NOTHING)
+    }
+
+    private fun renderAccentColorState() {
+        val currentAccentColor = WidgetPreferences.getAccentColor(this)
+        accentColorLabel.text = "Accent color: ${currentAccentColor.displayName}"
+        accentColorButtons.forEach { (accentColor, button) ->
+            button.text = if (accentColor == currentAccentColor) "✓ ${accentColor.displayName}" else accentColor.displayName
+        }
     }
 
     private fun renderDotSizeState() {
@@ -428,6 +485,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun styleLabel(label: String, selected: Boolean): String =
         if (selected) "✓ $label" else label
+
+    private fun textColorForBackground(color: Int): Int {
+        val red = android.graphics.Color.red(color)
+        val green = android.graphics.Color.green(color)
+        val blue = android.graphics.Color.blue(color)
+        val luminance = (0.299 * red + 0.587 * green + 0.114 * blue)
+        return if (luminance > 150.0) 0xFF111111.toInt() else 0xFFFFFFFF.toInt()
+    }
 
     private fun renderPermissionNeeded() {
         statusText.text = getString(R.string.permission_needed_message)
