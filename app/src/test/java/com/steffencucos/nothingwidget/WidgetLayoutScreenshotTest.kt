@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.LayoutRes
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import com.steffencucos.nothingwidget.widget.DotMatrixText
+import com.steffencucos.nothingwidget.widget.PhaseWatchIconRenderer
 import org.junit.Rule
 import org.junit.Test
 
@@ -25,7 +27,9 @@ class WidgetLayoutScreenshotTest {
         snapshotWidgetLayout(
             layoutId = R.layout.widget_solar_event,
             snapshotName = "widget_solar_event_2x2_clean"
-        )
+        ) { container ->
+            container.setPhaseIcon(sizeDp = 40, phase = 0.25f, darkMode = false)
+        }
     }
 
     @Test
@@ -36,6 +40,7 @@ class WidgetLayoutScreenshotTest {
         ) { container ->
             container.findViewById<TextView>(R.id.eventLabel).text = DotMatrixText.render("SUNRISE")
             container.findViewById<TextView>(R.id.eventTime).text = DotMatrixText.render("5:36 AM")
+            container.setPhaseIcon(sizeDp = 34, phase = 0.6f, darkMode = true)
         }
     }
 
@@ -63,6 +68,17 @@ class WidgetLayoutScreenshotTest {
         container.layout(0, 0, widthPx, heightPx)
 
         paparazzi.snapshot(container, snapshotName)
+    }
+
+    private fun FrameLayout.setPhaseIcon(sizeDp: Int, phase: Float, darkMode: Boolean) {
+        findViewById<ImageView>(R.id.eventIcon).setImageBitmap(
+            PhaseWatchIconRenderer.render(
+                sizePx = context.dp(sizeDp),
+                phase = phase,
+                darkMode = darkMode,
+                accentColor = Color.rgb(196, 58, 54)
+            )
+        )
     }
 
     private fun android.content.Context.dp(value: Int): Int =
