@@ -13,6 +13,6 @@
     <string name="widget_style_classic">Clean</string>
     <string name="widget_style_nothing">Nothing-inspired</string>
     <string name="dot_size_title">Dot text size</string>
-    <string name="time_simulation_title">60× time speed</string>
-    <string name="time_simulation_subtitle">Full solar day in about 24 minutes</string>
+    <string name="time_simulation_title">Time simulation</string>
+    <string name="time_simulation_subtitle">Full solar day preview</string>
 </resources>
