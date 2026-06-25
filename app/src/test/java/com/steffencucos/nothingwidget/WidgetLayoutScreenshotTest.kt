@@ -26,7 +26,9 @@ class WidgetLayoutScreenshotTest {
     fun cleanWidgetDefaultStateFitsTwoByTwo() {
         snapshotWidgetLayout(
             layoutId = R.layout.widget_solar_event,
-            snapshotName = "widget_solar_event_2x2_clean"
+            snapshotName = "widget_solar_event_2x2_clean",
+            widthDp = 160,
+            heightDp = 160
         ) { container ->
             container.setPhaseIcon(sizeDp = 40, phase = 0.25f, darkMode = false)
         }
@@ -36,22 +38,42 @@ class WidgetLayoutScreenshotTest {
     fun nothingWidgetDefaultStateFitsTwoByTwo() {
         snapshotWidgetLayout(
             layoutId = R.layout.widget_solar_event_nothing,
-            snapshotName = "widget_solar_event_2x2_nothing"
+            snapshotName = "widget_solar_event_2x2_nothing",
+            widthDp = 160,
+            heightDp = 160
         ) { container ->
-            container.findViewById<TextView>(R.id.eventLabel).text = DotMatrixText.render("SUNRISE")
-            container.findViewById<TextView>(R.id.eventTime).text = DotMatrixText.render("5:36 AM")
-            container.setPhaseIcon(sizeDp = 34, phase = 0.6f, darkMode = true)
+            container.findViewById<TextView>(R.id.eventLabel).text = DotMatrixText.render("SUNSET", maxCharacters = 8)
+            container.findViewById<TextView>(R.id.eventTime).text = DotMatrixText.render("7:42 PM", maxCharacters = 8)
+            container.setPhaseIcon(sizeDp = 86, phase = 0.38f, darkMode = true)
+        }
+    }
+
+    @Test
+    fun nothingWideWidgetDefaultStateFitsMedium() {
+        snapshotWidgetLayout(
+            layoutId = R.layout.widget_solar_event_nothing_wide,
+            snapshotName = "widget_solar_event_2x4_nothing",
+            widthDp = 320,
+            heightDp = 160
+        ) { container ->
+            container.findViewById<TextView>(R.id.eventStatus).text = "NEXT"
+            container.findViewById<TextView>(R.id.eventLabel).text = DotMatrixText.render("SUNSET", maxCharacters = 8)
+            container.findViewById<TextView>(R.id.eventTime).text = DotMatrixText.render("7:42 PM", maxCharacters = 8)
+            container.findViewById<TextView>(R.id.eventRemaining).text = "IN 2H 18M"
+            container.setPhaseIcon(sizeDp = 126, phase = 0.38f, darkMode = true)
         }
     }
 
     private fun snapshotWidgetLayout(
         @LayoutRes layoutId: Int,
         snapshotName: String,
+        widthDp: Int,
+        heightDp: Int,
         configure: (FrameLayout) -> Unit = {}
     ) {
         val context = paparazzi.context
-        val widthPx = context.dp(160)
-        val heightPx = context.dp(160)
+        val widthPx = context.dp(widthDp)
+        val heightPx = context.dp(heightDp)
 
         val container = FrameLayout(context).apply {
             setBackgroundColor(Color.TRANSPARENT)
@@ -76,7 +98,7 @@ class WidgetLayoutScreenshotTest {
                 sizePx = context.dp(sizeDp),
                 phase = phase,
                 darkMode = darkMode,
-                accentColor = Color.rgb(196, 58, 54)
+                accentColor = Color.rgb(245, 34, 45)
             )
         )
     }
