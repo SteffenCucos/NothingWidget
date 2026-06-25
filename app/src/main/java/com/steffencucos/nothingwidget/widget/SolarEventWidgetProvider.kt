@@ -6,9 +6,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.widget.RemoteViews
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -94,7 +92,6 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             setTextColor(R.id.statusAccentDot, accentColor)
             setTextColor(R.id.iconAccentDot, accentColor)
             setTextColor(R.id.progressText, accentColor)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) setColorStateList(R.id.eventProgress, "setProgressTintList", ColorStateList.valueOf(accentColor))
         }
 
         private fun remainingText(value: String): String = "IN ${value.uppercase().replace(" LEFT", "").trim()}"
