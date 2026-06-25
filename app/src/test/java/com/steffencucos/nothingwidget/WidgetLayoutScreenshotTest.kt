@@ -10,8 +10,8 @@ import android.widget.TextView
 import androidx.annotation.LayoutRes
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
-import com.steffencucos.nothingwidget.widget.DotMatrixText
 import com.steffencucos.nothingwidget.widget.PhaseWatchIconRenderer
+import com.steffencucos.nothingwidget.widget.TimeDotMatrixRenderer
 import org.junit.Rule
 import org.junit.Test
 
@@ -24,43 +24,29 @@ class WidgetLayoutScreenshotTest {
 
     @Test
     fun cleanWidgetDefaultStateFitsTwoByTwo() {
-        snapshotWidgetLayout(
-            layoutId = R.layout.widget_solar_event,
-            snapshotName = "widget_solar_event_2x2_clean",
-            widthDp = 160,
-            heightDp = 160
-        ) { container ->
+        snapshotWidgetLayout(R.layout.widget_solar_event, "widget_solar_event_2x2_clean", 160, 160) { container ->
             container.setPhaseIcon(sizeDp = 40, phase = 0.25f, darkMode = false)
         }
     }
 
     @Test
     fun nothingWidgetDefaultStateFitsTwoByTwo() {
-        snapshotWidgetLayout(
-            layoutId = R.layout.widget_solar_event_nothing,
-            snapshotName = "widget_solar_event_2x2_nothing",
-            widthDp = 160,
-            heightDp = 160
-        ) { container ->
-            container.findViewById<TextView>(R.id.eventLabel).text = DotMatrixText.render("SUNSET", maxCharacters = 8)
-            container.findViewById<TextView>(R.id.eventTime).text = DotMatrixText.render("7:42 PM", maxCharacters = 8)
-            container.setPhaseIcon(sizeDp = 86, phase = 0.38f, darkMode = true)
+        snapshotWidgetLayout(R.layout.widget_solar_event_nothing, "widget_solar_event_2x2_nothing", 160, 160) { container ->
+            container.findViewById<TextView>(R.id.eventLabel).text = "SUNSET"
+            container.findViewById<TextView>(R.id.eventRemaining).text = "IN 2H 18M"
+            container.setDotTime(heightDp = 36, value = "7:42 PM", color = Color.WHITE)
+            container.setPhaseIcon(sizeDp = 110, phase = 0.38f, darkMode = true)
         }
     }
 
     @Test
     fun nothingWideWidgetDefaultStateFitsMedium() {
-        snapshotWidgetLayout(
-            layoutId = R.layout.widget_solar_event_nothing_wide,
-            snapshotName = "widget_solar_event_2x4_nothing",
-            widthDp = 320,
-            heightDp = 160
-        ) { container ->
+        snapshotWidgetLayout(R.layout.widget_solar_event_nothing_wide, "widget_solar_event_2x4_nothing", 320, 160) { container ->
             container.findViewById<TextView>(R.id.eventStatus).text = "NEXT"
-            container.findViewById<TextView>(R.id.eventLabel).text = DotMatrixText.render("SUNSET", maxCharacters = 8)
-            container.findViewById<TextView>(R.id.eventTime).text = DotMatrixText.render("7:42 PM", maxCharacters = 8)
+            container.findViewById<TextView>(R.id.eventLabel).text = "SUNSET"
             container.findViewById<TextView>(R.id.eventRemaining).text = "IN 2H 18M"
-            container.setPhaseIcon(sizeDp = 126, phase = 0.38f, darkMode = true)
+            container.setDotTime(heightDp = 52, value = "7:42 PM", color = Color.WHITE)
+            container.setPhaseIcon(sizeDp = 140, phase = 0.38f, darkMode = true)
         }
     }
 
@@ -74,32 +60,29 @@ class WidgetLayoutScreenshotTest {
         val context = paparazzi.context
         val widthPx = context.dp(widthDp)
         val heightPx = context.dp(heightDp)
-
         val container = FrameLayout(context).apply {
             setBackgroundColor(Color.TRANSPARENT)
             layoutParams = ViewGroup.LayoutParams(widthPx, heightPx)
         }
-
         LayoutInflater.from(context).inflate(layoutId, container, true)
         configure(container)
-
         container.measure(
             View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(heightPx, View.MeasureSpec.EXACTLY)
         )
         container.layout(0, 0, widthPx, heightPx)
-
         paparazzi.snapshot(container, snapshotName)
     }
 
     private fun FrameLayout.setPhaseIcon(sizeDp: Int, phase: Float, darkMode: Boolean) {
         findViewById<ImageView>(R.id.eventIcon).setImageBitmap(
-            PhaseWatchIconRenderer.render(
-                sizePx = context.dp(sizeDp),
-                phase = phase,
-                darkMode = darkMode,
-                accentColor = Color.rgb(245, 34, 45)
-            )
+            PhaseWatchIconRenderer.render(context.dp(sizeDp), phase, darkMode, Color.rgb(245, 34, 45))
+        )
+    }
+
+    private fun FrameLayout.setDotTime(heightDp: Int, value: String, color: Int) {
+        findViewById<ImageView>(R.id.eventTime).setImageBitmap(
+            TimeDotMatrixRenderer.render(value, context.dp(heightDp), color)
         )
     }
 
