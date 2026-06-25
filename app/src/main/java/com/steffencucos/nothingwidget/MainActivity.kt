@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private var previewContainer: FrameLayout? = null
     private var previewView: View? = null
     private var previewLayoutId: Int? = null
+    private var lastActualWidgetRefreshMs = 0L
 
     private lateinit var statusText: TextView
     private lateinit var actionButton: Button
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         startLivePreview()
+        refreshActualWidget(force = true)
     }
 
     override fun onPause() {
@@ -120,6 +122,7 @@ class MainActivity : AppCompatActivity() {
         })
         rebuildPreviewIfNeeded(force = true)
         startLivePreview()
+        refreshActualWidget(force = true)
     }
 
     private fun showConfigurationScreen() {
@@ -293,6 +296,14 @@ class MainActivity : AppCompatActivity() {
         }
         view.findViewById<TextView>(R.id.progressText)?.text = "${event.progressPercent}%"
         view.findViewById<ProgressBar>(R.id.eventProgress)?.progress = event.progressPercent
+        refreshActualWidget()
+    }
+
+    private fun refreshActualWidget(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - lastActualWidgetRefreshMs < ACTUAL_WIDGET_REFRESH_INTERVAL_MS) return
+        lastActualWidgetRefreshMs = now
+        SolarEventWidgetProvider.refreshAll(this)
     }
 
     private fun applyAccentColorToPreview(view: View, accentColor: Int) {
@@ -359,7 +370,7 @@ class MainActivity : AppCompatActivity() {
                     return@runOnUiThread
                 }
                 locationStore.save(location)
-                SolarEventWidgetProvider.refreshAll(this)
+                refreshActualWidget(force = true)
                 renderReady()
             }
         }
@@ -368,31 +379,31 @@ class MainActivity : AppCompatActivity() {
     private fun setWidgetStyle(style: WidgetStyle) {
         WidgetPreferences.setStyle(this, style)
         renderStyleState()
-        SolarEventWidgetProvider.refreshAll(this)
+        refreshActualWidget(force = true)
     }
 
     private fun setAccentColor(accentColor: WidgetAccentColor) {
         WidgetPreferences.setAccentColor(this, accentColor)
         renderAccentColorState()
-        SolarEventWidgetProvider.refreshAll(this)
+        refreshActualWidget(force = true)
     }
 
     private fun setDotTextSize(sizeSp: Int) {
         WidgetPreferences.setDotTextSizeSp(this, sizeSp)
         renderDotSizeState()
-        SolarEventWidgetProvider.refreshAll(this)
+        refreshActualWidget(force = true)
     }
 
     private fun setTimeSimulationEnabled(enabled: Boolean) {
         WidgetPreferences.setTimeSimulationEnabled(this, enabled)
         renderTimeSimulationState()
-        SolarEventWidgetProvider.refreshAll(this)
+        refreshActualWidget(force = true)
     }
 
     private fun setTimeSimulationMultiplier(multiplier: Int) {
         WidgetPreferences.setTimeSimulationMultiplier(this, multiplier)
         renderTimeSimulationState()
-        SolarEventWidgetProvider.refreshAll(this)
+        refreshActualWidget(force = true)
     }
 
     private fun renderStyleState() {
@@ -460,4 +471,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    companion object {
+        private const val ACTUAL_WIDGET_REFRESH_INTERVAL_MS = 5_000L
+    }
 }
