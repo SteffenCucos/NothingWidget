@@ -15,9 +15,7 @@
         android:id="@+id/eventStatus"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:includeFontPadding="false"
-        android:text="NEXT"
-        android:textSize="1sp" />
+        android:text="NEXT" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -30,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:includeFontPadding="false"
-            android:text="●"
+            android:text="x"
             android:textColor="@color/widget_nothing_accent_red"
             android:textSize="7sp" />
 
@@ -43,33 +41,26 @@
             android:ellipsize="end"
             android:fontFamily="monospace"
             android:includeFontPadding="false"
-            android:lineSpacingExtra="0dp"
-            android:lineSpacingMultiplier="0.76"
-            android:maxLines="5"
+            android:letterSpacing="0.10"
+            android:maxLines="1"
             android:text="SUNSET"
-            android:textColor="@color/widget_nothing_text_primary"
-            android:textSize="5sp" />
+            android:textColor="@color/widget_nothing_text_secondary"
+            android:textSize="11sp" />
     </LinearLayout>
 
-    <TextView
+    <ImageView
         android:id="@+id/eventTime"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:fontFamily="monospace"
-        android:includeFontPadding="false"
-        android:lineSpacingExtra="0dp"
-        android:lineSpacingMultiplier="0.70"
-        android:maxLines="5"
-        android:text="7:42 PM"
-        android:textColor="@color/widget_nothing_text_primary"
-        android:textSize="10sp" />
+        android:layout_height="36dp"
+        android:layout_marginTop="4dp"
+        android:contentDescription="@null"
+        android:scaleType="fitStart" />
 
     <ImageView
         android:id="@+id/eventIcon"
-        android:layout_width="86dp"
-        android:layout_height="54dp"
-        android:layout_marginTop="2dp"
+        android:layout_width="110dp"
+        android:layout_height="68dp"
+        android:layout_marginTop="0dp"
         android:contentDescription="@null"
         android:scaleType="fitCenter" />
 
@@ -77,23 +68,19 @@
         android:id="@+id/progressText"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:includeFontPadding="false"
-        android:text="50%"
-        android:textSize="1sp" />
+        android:text="50%" />
 
     <TextView
         android:id="@+id/iconAccentDot"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:includeFontPadding="false"
-        android:text="●"
-        android:textSize="1sp" />
+        android:text="x" />
 
     <TextView
         android:id="@+id/eventRemaining"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="1dp"
         android:ellipsize="end"
         android:fontFamily="monospace"
         android:includeFontPadding="false"
@@ -101,13 +88,4 @@
         android:text="IN 2H 18M"
         android:textColor="@color/widget_nothing_text_secondary"
         android:textSize="8sp" />
-
-    <ProgressBar
-        android:id="@+id/eventProgress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:max="100"
-        android:progress="50"
-        android:progressDrawable="@drawable/widget_nothing_progress" />
 </LinearLayout>
