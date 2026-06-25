@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_nothing_background"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="18dp"
+    android:paddingTop="16dp"
+    android:paddingRight="18dp"
+    android:paddingBottom="14dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/eventStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.12"
+            android:maxLines="1"
+            android:text="NEXT"
+            android:textAllCaps="true"
+            android:textColor="@color/widget_nothing_text_tertiary"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/eventLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:lineSpacingExtra="0dp"
+            android:lineSpacingMultiplier="0.76"
+            android:maxLines="5"
+            android:text="SUNSET"
+            android:textColor="@color/widget_nothing_text_primary"
+            android:textSize="7sp" />
+
+        <TextView
+            android:id="@+id/eventTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:lineSpacingExtra="0dp"
+            android:lineSpacingMultiplier="0.72"
+            android:maxLines="5"
+            android:text="7:42 PM"
+            android:textColor="@color/widget_nothing_text_primary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/eventRemaining"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="IN 2H 18M"
+            android:textColor="@color/widget_nothing_text_secondary"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="126dp"
+        android:layout_height="126dp">
+
+        <ImageView
+            android:id="@+id/eventIcon"
+            android:layout_width="126dp"
+            android:layout_height="126dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/statusAccentDot"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:includeFontPadding="false"
+            android:text="●"
+            android:textSize="1sp" />
+
+        <TextView
+            android:id="@+id/iconAccentDot"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:includeFontPadding="false"
+            android:text="●"
+            android:textSize="1sp" />
+
+        <TextView
+            android:id="@+id/progressText"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:includeFontPadding="false"
+            android:text="50%"
+            android:textSize="1sp" />
+    </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/eventProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:max="100"
+        android:progress="50"
+        android:progressDrawable="@drawable/widget_nothing_progress" />
+</LinearLayout>
