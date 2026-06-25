@@ -46,6 +46,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
         private const val ACTION_SIMULATION_TICK = "com.steffencucos.nothingwidget.action.SIMULATION_TICK"
         private const val SIMULATION_REFRESH_INTERVAL_MS = 15_000L
         private const val SIMULATION_ALARM_REQUEST_CODE = 60
+        private const val WIDE_MIN_WIDTH_DP = 220
 
         fun refreshAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -57,8 +58,15 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
         fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val event = SolarEventRepository(context).getNextEvent(WidgetPreferences.currentWidgetTime(context))
             val style = WidgetPreferences.getStyle(context)
+            val isWide = style == WidgetStyle.NOTHING && appWidgetManager
+                .getAppWidgetOptions(appWidgetId)
+                .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) >= WIDE_MIN_WIDTH_DP
             val accentColor = WidgetPreferences.getAccentColor(context).argb
-            val iconSizeDp = if (style == WidgetStyle.NOTHING) 34 else 40
+            val iconSizeDp = when {
+                style != WidgetStyle.NOTHING -> 40
+                isWide -> 126
+                else -> 86
+            }
             val iconBitmap = PhaseWatchIconRenderer.render(
                 sizePx = dpToPx(context, iconSizeDp),
                 phase = phaseFor(event.label, event.progressPercent),
@@ -73,21 +81,24 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val views = RemoteViews(context.packageName, widgetLayout(context, style)).apply {
-                setTextViewText(R.id.eventStatus, event.statusText.uppercase())
+            val views = RemoteViews(context.packageName, widgetLayout(context, style, isWide)).apply {
+                setTextViewText(R.id.eventStatus, if (style == WidgetStyle.NOTHING && isWide) "NEXT" else event.statusText.uppercase())
                 setImageViewBitmap(R.id.eventIcon, iconBitmap)
                 if (style == WidgetStyle.NOTHING) {
                     val dotSizeSp = WidgetPreferences.getDotTextSizeSp(context).toFloat()
-                    setTextViewText(R.id.eventLabel, DotMatrixText.render(event.label, maxCharacters = 7))
-                    setTextViewText(R.id.eventTime, DotMatrixText.render(event.displayTime, maxCharacters = 7))
-                    setTextViewTextSize(R.id.eventLabel, android.util.TypedValue.COMPLEX_UNIT_SP, dotSizeSp)
-                    setTextViewTextSize(R.id.eventTime, android.util.TypedValue.COMPLEX_UNIT_SP, dotSizeSp)
+                    val labelSizeSp = if (isWide) dotSizeSp else maxOf(5f, dotSizeSp - 2f)
+                    val timeSizeSp = if (isWide) dotSizeSp + 4f else dotSizeSp + 3f
+                    setTextViewText(R.id.eventLabel, DotMatrixText.render(event.label, maxCharacters = 8))
+                    setTextViewText(R.id.eventTime, DotMatrixText.render(event.displayTime, maxCharacters = 8))
+                    setTextViewTextSize(R.id.eventLabel, android.util.TypedValue.COMPLEX_UNIT_SP, labelSizeSp)
+                    setTextViewTextSize(R.id.eventTime, android.util.TypedValue.COMPLEX_UNIT_SP, timeSizeSp)
+                    setTextViewText(R.id.eventRemaining, remainingText(event.timeRemaining))
                     applyAccentColor(accentColor)
                 } else {
                     setTextViewText(R.id.eventLabel, event.label.uppercase())
                     setTextViewText(R.id.eventTime, event.displayTime.uppercase())
+                    setTextViewText(R.id.eventRemaining, event.timeRemaining)
                 }
-                setTextViewText(R.id.eventRemaining, event.timeRemaining)
                 setTextViewText(R.id.progressText, "${event.progressPercent}%")
                 setProgressBar(R.id.eventProgress, 100, event.progressPercent, false)
                 setOnClickPendingIntent(R.id.widgetRoot, pendingIntent)
@@ -105,6 +116,9 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             }
         }
 
+        private fun remainingText(value: String): String =
+            "IN ${value.uppercase().replace(" LEFT", "").trim()}"
+
         private fun phaseFor(label: String, progressPercent: Int): Float {
             val progress = progressPercent.coerceIn(0, 100) / 100f
             return if (label.uppercase() == "SUNSET") progress * 0.5f else 0.5f + progress * 0.5f
@@ -118,9 +132,15 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
         private fun dpToPx(context: Context, value: Int): Int =
             (value * context.resources.displayMetrics.density).toInt()
 
-        private fun widgetLayout(context: Context, style: WidgetStyle): Int {
+        private fun widgetLayout(context: Context, style: WidgetStyle, isWide: Boolean): Int {
             if (style == WidgetStyle.CLASSIC) return R.layout.widget_solar_event
-            return if (isDarkMode(context)) R.layout.widget_solar_event_nothing else R.layout.widget_solar_event_nothing_light
+            val dark = isDarkMode(context)
+            return when {
+                isWide && dark -> R.layout.widget_solar_event_nothing_wide
+                isWide -> R.layout.widget_solar_event_nothing_wide_light
+                dark -> R.layout.widget_solar_event_nothing
+                else -> R.layout.widget_solar_event_nothing_light
+            }
         }
 
         private fun scheduleRefreshes(context: Context) {
