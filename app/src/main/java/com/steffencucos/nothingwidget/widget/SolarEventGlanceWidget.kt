@@ -54,25 +54,25 @@ object SolarEventGlanceWidget : GlanceAppWidget() {
         val event = SolarEventRepository(context).getNextEvent(WidgetPreferences.currentWidgetTime(context))
         val accent = WidgetPreferences.getAccentColor(context).argb
         val compactIconBitmap = PhaseWatchIconRenderer.render(
-            sizePx = 160,
+            sizePx = 140,
             phase = phaseFor(event),
             darkMode = true,
             accentColor = accent
         )
         val wideIconBitmap = PhaseWatchIconRenderer.render(
-            sizePx = 220,
+            sizePx = 200,
             phase = phaseFor(event),
             darkMode = true,
             accentColor = accent
         )
         val compactTimeBitmap = TimeDotMatrixRenderer.render(
             value = event.displayTime,
-            heightPx = 52,
+            heightPx = 44,
             color = AndroidColor.WHITE
         )
         val wideTimeBitmap = TimeDotMatrixRenderer.render(
             value = event.displayTime,
-            heightPx = 64,
+            heightPx = 56,
             color = AndroidColor.WHITE
         )
 
@@ -82,8 +82,7 @@ object SolarEventGlanceWidget : GlanceAppWidget() {
                 compactIconBitmap = compactIconBitmap,
                 wideIconBitmap = wideIconBitmap,
                 compactTimeBitmap = compactTimeBitmap,
-                wideTimeBitmap = wideTimeBitmap,
-                accentColor = accent
+                wideTimeBitmap = wideTimeBitmap
             )
         }
     }
@@ -100,15 +99,14 @@ private fun SolarEventGlanceContent(
     compactIconBitmap: Bitmap,
     wideIconBitmap: Bitmap,
     compactTimeBitmap: Bitmap,
-    wideTimeBitmap: Bitmap,
-    accentColor: Int
+    wideTimeBitmap: Bitmap
 ) {
     val currentSize = LocalSize.current
     val wide = currentSize.width >= 140.dp
     if (wide) {
-        SolarEventWideGlanceContent(event, wideIconBitmap, wideTimeBitmap, accentColor)
+        SolarEventWideGlanceContent(event, wideIconBitmap, wideTimeBitmap)
     } else {
-        SolarEventCompactGlanceContent(event, compactIconBitmap, compactTimeBitmap, accentColor)
+        SolarEventCompactGlanceContent(event, compactIconBitmap, compactTimeBitmap)
     }
 }
 
@@ -116,15 +114,14 @@ private fun SolarEventGlanceContent(
 private fun SolarEventCompactGlanceContent(
     event: SolarEvent,
     iconBitmap: Bitmap,
-    timeBitmap: Bitmap,
-    accentColor: Int
+    timeBitmap: Bitmap
 ) {
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ColorProvider(Color.Black))
             .clickable(actionStartActivity<MainActivity>())
-            .padding(7.dp),
+            .padding(5.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -132,7 +129,7 @@ private fun SolarEventCompactGlanceContent(
             text = event.label.uppercase(),
             style = TextStyle(
                 color = ColorProvider(Color(0xFFBDBDBD)),
-                fontSize = 9.sp,
+                fontSize = 8.sp,
                 textAlign = TextAlign.Center
             )
         )
@@ -140,22 +137,13 @@ private fun SolarEventCompactGlanceContent(
         Image(
             provider = ImageProvider(timeBitmap),
             contentDescription = null,
-            modifier = GlanceModifier.height(24.dp)
+            modifier = GlanceModifier.height(20.dp)
         )
         Spacer(modifier = GlanceModifier.height(1.dp))
         Image(
             provider = ImageProvider(iconBitmap),
             contentDescription = null,
-            modifier = GlanceModifier.size(46.dp)
-        )
-        Text(
-            text = "IN ${event.timeRemaining.uppercase().replace(" LEFT", "").trim()}",
-            style = TextStyle(
-                color = ColorProvider(Color(accentColor)),
-                fontSize = 7.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            modifier = GlanceModifier.size(34.dp)
         )
     }
 }
@@ -164,57 +152,50 @@ private fun SolarEventCompactGlanceContent(
 private fun SolarEventWideGlanceContent(
     event: SolarEvent,
     iconBitmap: Bitmap,
-    timeBitmap: Bitmap,
-    accentColor: Int
+    timeBitmap: Bitmap
 ) {
     Row(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ColorProvider(Color.Black))
             .clickable(actionStartActivity<MainActivity>())
-            .padding(10.dp),
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = GlanceModifier.width(78.dp),
+            modifier = GlanceModifier.width(82.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "NEXT",
-                style = TextStyle(
-                    color = ColorProvider(Color(0xFF8A8A8A)),
-                    fontSize = 8.sp
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "NEXT",
+                    style = TextStyle(
+                        color = ColorProvider(Color(0xFF8A8A8A)),
+                        fontSize = 7.sp
+                    )
                 )
-            )
-            Text(
-                text = event.label.uppercase(),
-                style = TextStyle(
-                    color = ColorProvider(Color(0xFFBDBDBD)),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium
+                Spacer(modifier = GlanceModifier.width(6.dp))
+                Text(
+                    text = event.label.uppercase(),
+                    style = TextStyle(
+                        color = ColorProvider(Color(0xFFBDBDBD)),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 )
-            )
+            }
             Spacer(modifier = GlanceModifier.height(4.dp))
             Image(
                 provider = ImageProvider(timeBitmap),
                 contentDescription = null,
-                modifier = GlanceModifier.height(30.dp)
-            )
-            Spacer(modifier = GlanceModifier.height(4.dp))
-            Text(
-                text = "IN ${event.timeRemaining.uppercase().replace(" LEFT", "").trim()}",
-                style = TextStyle(
-                    color = ColorProvider(Color(accentColor)),
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                modifier = GlanceModifier.height(24.dp)
             )
         }
         Spacer(modifier = GlanceModifier.width(4.dp))
         Image(
             provider = ImageProvider(iconBitmap),
             contentDescription = null,
-            modifier = GlanceModifier.size(64.dp)
+            modifier = GlanceModifier.size(56.dp)
         )
     }
 }
