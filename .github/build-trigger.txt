@@ -1,0 +1,3 @@
+Manual CI trigger for Android CI.
+
+Triggered from ChatGPT on 2026-06-30 after adding the solar complication orbit, Glance widget, and renderer polish commits.
