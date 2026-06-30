@@ -22,9 +22,11 @@ The app now has a functional first implementation:
 - Local storage of the latest latitude/longitude.
 - Offline sunrise/sunset calculation using a NOAA-style solar event algorithm.
 - Standard Android App Widget provider.
+- Jetpack Glance widget provider.
 - WorkManager-based periodic widget refresh.
 - Tap-to-open-widget behavior.
-- Dark rounded widget UI with event name, time, remaining time, icon, and progress bar.
+- Nothing-style compact `1x1` layout with label, dot-matrix time, mini solar arc, and remaining time.
+- Nothing-style wide `1x2` layout with left-side event details and right-side solar arc.
 - GitHub Actions workflow that runs unit tests and assembles the debug APK on push/PR.
 
 ## Behavior
@@ -38,6 +40,13 @@ Example states:
 The progress indicator represents how far the user is between the previous solar event and the next one. For example, halfway between sunrise and sunset, the progress should be roughly 50% complete.
 
 When no location has been saved yet, the widget prompts the user to open the app and enable location.
+
+## Widget formats
+
+- `1x1`: compact square format for a quick glance. It prioritizes event type, dot-matrix time, and a miniature phase/progress arc.
+- `1x2`: one-row wide format. It adds `NEXT`, remaining time, and a larger arc while staying short enough for a single launcher row.
+
+Both the RemoteViews and Glance widget implementations advertise a `1x1` target size and resize horizontally into the wide `1x2` presentation.
 
 ## Project structure
 
@@ -95,9 +104,8 @@ GitHub Actions runs unit tests and assembles the debug APK on pushes to `main`, 
 1. Add a Gradle wrapper.
 2. Add unit tests for event selection, edge cases, and progress calculation.
 3. Add a widget configuration screen for manual/fallback location.
-4. Improve the visual language with segmented progress or dot-matrix styling.
-5. Add smaller/larger widget layouts.
-6. Consider Jetpack Glance if the standard RemoteViews implementation becomes too limiting.
+4. Add launcher preview assets for each widget size.
+5. Tune spacing against real Nothing Launcher cell metrics after installing on-device.
 
 ## Privacy
 
