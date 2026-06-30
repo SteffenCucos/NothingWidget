@@ -24,7 +24,6 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.defaultWeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -177,7 +176,7 @@ private fun SolarEventWideGlanceContent(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = GlanceModifier.defaultWeight(),
+            modifier = GlanceModifier.width(78.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
