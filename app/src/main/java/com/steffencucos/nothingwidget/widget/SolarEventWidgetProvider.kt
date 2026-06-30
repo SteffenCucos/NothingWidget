@@ -61,7 +61,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             val wide = style == WidgetStyle.NOTHING && appWidgetManager.getAppWidgetOptions(appWidgetId).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) >= WIDE_MIN_WIDTH_DP
             val dark = isDarkMode(context)
             val accent = WidgetPreferences.getAccentColor(context).argb
-            val iconDp = if (style != WidgetStyle.NOTHING) 40 else if (wide) 84 else 64
+            val iconDp = if (style != WidgetStyle.NOTHING) 40 else if (wide) 72 else 54
             val icon = PhaseWatchIconRenderer.render(dpToPx(context, iconDp), phaseFor(event.label, event.progressPercent), dark, accent)
             val pendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
@@ -70,9 +70,9 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
                 setImageViewBitmap(R.id.eventIcon, icon)
                 if (style == WidgetStyle.NOTHING) {
                     val textColor = if (dark) -1 else -15658735
-                    val timeHeight = if (wide) 30 else 24
+                    val timeHeight = if (wide) 24 else 20
                     setTextViewText(R.id.eventLabel, event.label.uppercase())
-                    setTextViewTextSize(R.id.eventLabel, android.util.TypedValue.COMPLEX_UNIT_SP, if (wide) 11f else 9f)
+                    setTextViewTextSize(R.id.eventLabel, android.util.TypedValue.COMPLEX_UNIT_SP, if (wide) 10f else 8f)
                     setImageViewBitmap(R.id.eventTime, TimeDotMatrixRenderer.render(event.displayTime, dpToPx(context, timeHeight), textColor))
                     setTextViewText(R.id.eventRemaining, remainingText(event.timeRemaining))
                     applyAccentColor(accent)
