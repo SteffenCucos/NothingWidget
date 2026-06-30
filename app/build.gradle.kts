@@ -31,6 +31,14 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
 }
 
 dependencies {
@@ -39,6 +47,8 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.2")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.compose.ui:ui-graphics:1.6.8")
 
     testImplementation("junit:junit:4.13.2")
 }
