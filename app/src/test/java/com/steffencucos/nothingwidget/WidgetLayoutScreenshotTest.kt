@@ -31,22 +31,20 @@ class WidgetLayoutScreenshotTest {
 
     @Test
     fun nothingWidgetDefaultStateFitsOneByOne() {
-        snapshotWidgetLayout(R.layout.widget_solar_event_nothing, "widget_solar_event_1x1_nothing", 96, 96) { container ->
+        snapshotWidgetLayout(R.layout.widget_solar_event_nothing, "widget_solar_event_1x1_nothing", 80, 80) { container ->
             container.findViewById<TextView>(R.id.eventLabel).text = "SUNSET"
-            container.findViewById<TextView>(R.id.eventRemaining).text = "IN 2H 18M"
-            container.setDotTime(heightDp = 24, value = "7:42 PM", color = Color.WHITE)
-            container.setPhaseIcon(sizeDp = 64, phase = 0.38f, darkMode = true)
+            container.setDotTime(heightDp = 20, value = "7:42 PM", color = Color.WHITE)
+            container.setPhaseIcon(sizeDp = 54, phase = 0.38f, darkMode = true)
         }
     }
 
     @Test
     fun nothingWideWidgetDefaultStateFitsOneByTwo() {
-        snapshotWidgetLayout(R.layout.widget_solar_event_nothing_wide, "widget_solar_event_1x2_nothing", 180, 96) { container ->
+        snapshotWidgetLayout(R.layout.widget_solar_event_nothing_wide, "widget_solar_event_1x2_nothing", 180, 80) { container ->
             container.findViewById<TextView>(R.id.eventStatus).text = "NEXT"
             container.findViewById<TextView>(R.id.eventLabel).text = "SUNSET"
-            container.findViewById<TextView>(R.id.eventRemaining).text = "IN 2H 18M"
-            container.setDotTime(heightDp = 30, value = "7:42 PM", color = Color.WHITE)
-            container.setPhaseIcon(sizeDp = 84, phase = 0.38f, darkMode = true)
+            container.setDotTime(heightDp = 24, value = "7:42 PM", color = Color.WHITE)
+            container.setPhaseIcon(sizeDp = 72, phase = 0.38f, darkMode = true)
         }
     }
 
