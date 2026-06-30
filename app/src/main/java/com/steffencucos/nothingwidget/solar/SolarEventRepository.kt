@@ -30,17 +30,19 @@ class SolarEventRepository(context: Context) {
 
     private fun getNextEvent(location: StoredLocation, now: ZonedDateTime): SolarEvent {
         val zoneId = ZoneId.systemDefault()
-        val today = now.withZoneSameInstant(zoneId).toLocalDate()
-        val events = (-1L..2L)
+        val localNow = now.withZoneSameInstant(zoneId)
+        val today = localNow.toLocalDate()
+        val events = (-2L..3L)
             .flatMap { offset ->
                 val date = today.plusDays(offset)
                 listOfNotNull(
                     SolarCalculator.sunrise(date, location.latitude, location.longitude, zoneId)
-                        ?.let { TimedSolarEvent("Sunrise", it, "☀") },
+                        ?.let { TimedSolarEvent(SUNRISE_LABEL, it) },
                     SolarCalculator.sunset(date, location.latitude, location.longitude, zoneId)
-                        ?.let { TimedSolarEvent("Sunset", it, "◐") }
+                        ?.let { TimedSolarEvent(SUNSET_LABEL, it) }
                 )
             }
+            .distinctBy { it.label to it.time.toInstant() }
             .sortedBy { it.time }
 
         if (events.isEmpty()) {
@@ -50,19 +52,24 @@ class SolarEventRepository(context: Context) {
                 timeRemaining = "Unavailable here",
                 progressPercent = 0,
                 iconText = "◎",
-                statusText = "No event today"
+                statusText = "No sunrise/sunset"
             )
         }
 
-        val localNow = now.withZoneSameInstant(zoneId)
-        val nextEvent = events.firstOrNull { it.time.isAfter(localNow) } ?: events.last()
-        val previousEvent = events.lastOrNull { it.time.isBefore(localNow) }
-        val progress = if (previousEvent == null) {
-            0
-        } else {
-            progressBetween(previousEvent.time, nextEvent.time, localNow)
-        }
+        val nextEvent = events.firstOrNull { it.time.isAfter(localNow) } ?: events.first()
+        val previousEvent = events
+            .lastOrNull { !it.time.isAfter(localNow) }
+            ?: events.lastOrNull { it.time.isBefore(nextEvent.time) }
 
+        val cycleStart = previousEvent?.time
+        val cycleEnd = nextEvent.time
+        val cycleProgress = if (cycleStart == null) {
+            0f
+        } else {
+            progressBetween(cycleStart, cycleEnd, localNow)
+        }
+        val progressPercent = (cycleProgress * 100f).roundToInt().coerceIn(0, 100)
+        val body = bodyForInterval(nextEvent.label)
         val isTomorrow = nextEvent.time.toLocalDate().isAfter(localNow.toLocalDate())
         val status = if (isTomorrow) "Tomorrow" else "Today"
 
@@ -70,20 +77,33 @@ class SolarEventRepository(context: Context) {
             label = nextEvent.label,
             displayTime = nextEvent.time.format(formatter),
             timeRemaining = formatRemaining(Duration.between(localNow, nextEvent.time)),
-            progressPercent = progress,
-            iconText = nextEvent.iconText,
-            statusText = status
+            progressPercent = progressPercent,
+            iconText = iconFor(body),
+            statusText = status,
+            body = body,
+            cycleProgress = cycleProgress,
+            cycleStart = cycleStart,
+            cycleEnd = cycleEnd,
+            nextEventTime = nextEvent.time
         )
     }
 
-    private fun progressBetween(start: ZonedDateTime, end: ZonedDateTime, now: ZonedDateTime): Int {
+    private fun bodyForInterval(nextEventLabel: String): SolarBody =
+        if (nextEventLabel == SUNSET_LABEL) SolarBody.SUN else SolarBody.MOON
+
+    private fun iconFor(body: SolarBody): String = when (body) {
+        SolarBody.SUN -> "☀"
+        SolarBody.MOON -> "☾"
+    }
+
+    private fun progressBetween(start: ZonedDateTime, end: ZonedDateTime, now: ZonedDateTime): Float {
         val total = Duration.between(start, end).toMillis()
         val elapsed = Duration.between(start, now).toMillis()
-        if (total <= 0L) return 0
+        if (total <= 0L) return 0f
 
-        return ((elapsed.toDouble() / total.toDouble()) * 100.0)
-            .roundToInt()
-            .coerceIn(0, 100)
+        return (elapsed.toDouble() / total.toDouble())
+            .toFloat()
+            .coerceIn(0f, 1f)
     }
 
     private fun formatRemaining(duration: Duration): String {
@@ -100,7 +120,11 @@ class SolarEventRepository(context: Context) {
 
     private data class TimedSolarEvent(
         val label: String,
-        val time: ZonedDateTime,
-        val iconText: String
+        val time: ZonedDateTime
     )
+
+    companion object {
+        private const val SUNRISE_LABEL = "Sunrise"
+        private const val SUNSET_LABEL = "Sunset"
+    }
 }
