@@ -5,25 +5,31 @@ import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalSize
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.defaultWeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -38,26 +44,46 @@ class SolarEventGlanceReceiver : GlanceAppWidgetReceiver() {
 }
 
 object SolarEventGlanceWidget : GlanceAppWidget() {
+    override val sizeMode: SizeMode = SizeMode.Responsive(
+        setOf(
+            DpSize(80.dp, 80.dp),
+            DpSize(160.dp, 80.dp)
+        )
+    )
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val event = SolarEventRepository(context).getNextEvent(WidgetPreferences.currentWidgetTime(context))
         val accent = WidgetPreferences.getAccentColor(context).argb
-        val iconBitmap = PhaseWatchIconRenderer.render(
-            sizePx = 280,
+        val compactIconBitmap = PhaseWatchIconRenderer.render(
+            sizePx = 160,
             phase = phaseFor(event),
             darkMode = true,
             accentColor = accent
         )
-        val timeBitmap = TimeDotMatrixRenderer.render(
+        val wideIconBitmap = PhaseWatchIconRenderer.render(
+            sizePx = 220,
+            phase = phaseFor(event),
+            darkMode = true,
+            accentColor = accent
+        )
+        val compactTimeBitmap = TimeDotMatrixRenderer.render(
             value = event.displayTime,
-            heightPx = 76,
+            heightPx = 52,
+            color = AndroidColor.WHITE
+        )
+        val wideTimeBitmap = TimeDotMatrixRenderer.render(
+            value = event.displayTime,
+            heightPx = 64,
             color = AndroidColor.WHITE
         )
 
         provideContent {
             SolarEventGlanceContent(
                 event = event,
-                iconBitmap = iconBitmap,
-                timeBitmap = timeBitmap,
+                compactIconBitmap = compactIconBitmap,
+                wideIconBitmap = wideIconBitmap,
+                compactTimeBitmap = compactTimeBitmap,
+                wideTimeBitmap = wideTimeBitmap,
                 accentColor = accent
             )
         }
@@ -72,6 +98,24 @@ object SolarEventGlanceWidget : GlanceAppWidget() {
 @Composable
 private fun SolarEventGlanceContent(
     event: SolarEvent,
+    compactIconBitmap: Bitmap,
+    wideIconBitmap: Bitmap,
+    compactTimeBitmap: Bitmap,
+    wideTimeBitmap: Bitmap,
+    accentColor: Int
+) {
+    val currentSize = LocalSize.current
+    val wide = currentSize.width >= 140.dp
+    if (wide) {
+        SolarEventWideGlanceContent(event, wideIconBitmap, wideTimeBitmap, accentColor)
+    } else {
+        SolarEventCompactGlanceContent(event, compactIconBitmap, compactTimeBitmap, accentColor)
+    }
+}
+
+@Composable
+private fun SolarEventCompactGlanceContent(
+    event: SolarEvent,
     iconBitmap: Bitmap,
     timeBitmap: Bitmap,
     accentColor: Int
@@ -81,55 +125,97 @@ private fun SolarEventGlanceContent(
             .fillMaxSize()
             .background(ColorProvider(Color.Black))
             .clickable(actionStartActivity<MainActivity>())
-            .padding(14.dp),
+            .padding(7.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = event.statusText.uppercase(),
-            style = TextStyle(
-                color = ColorProvider(Color(0xFFBDBDBD)),
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center
-            )
-        )
-        Spacer(modifier = GlanceModifier.height(4.dp))
-        Image(
-            provider = ImageProvider(iconBitmap),
-            contentDescription = null,
-            modifier = GlanceModifier.size(104.dp)
-        )
-        Spacer(modifier = GlanceModifier.height(4.dp))
-        Text(
             text = event.label.uppercase(),
             style = TextStyle(
-                color = ColorProvider(Color.White),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
+                color = ColorProvider(Color(0xFFBDBDBD)),
+                fontSize = 9.sp,
                 textAlign = TextAlign.Center
             )
         )
+        Spacer(modifier = GlanceModifier.height(2.dp))
         Image(
             provider = ImageProvider(timeBitmap),
             contentDescription = null,
-            modifier = GlanceModifier.height(38.dp)
+            modifier = GlanceModifier.height(24.dp)
+        )
+        Spacer(modifier = GlanceModifier.height(1.dp))
+        Image(
+            provider = ImageProvider(iconBitmap),
+            contentDescription = null,
+            modifier = GlanceModifier.size(46.dp)
         )
         Text(
             text = "IN ${event.timeRemaining.uppercase().replace(" LEFT", "").trim()}",
             style = TextStyle(
-                color = ColorProvider(Color(0xFFE0E0E0)),
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center
-            )
-        )
-        Text(
-            text = "${event.progressPercent}%",
-            style = TextStyle(
                 color = ColorProvider(Color(accentColor)),
-                fontSize = 11.sp,
+                fontSize = 7.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
+        )
+    }
+}
+
+@Composable
+private fun SolarEventWideGlanceContent(
+    event: SolarEvent,
+    iconBitmap: Bitmap,
+    timeBitmap: Bitmap,
+    accentColor: Int
+) {
+    Row(
+        modifier = GlanceModifier
+            .fillMaxSize()
+            .background(ColorProvider(Color.Black))
+            .clickable(actionStartActivity<MainActivity>())
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = GlanceModifier.defaultWeight(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "NEXT",
+                style = TextStyle(
+                    color = ColorProvider(Color(0xFF8A8A8A)),
+                    fontSize = 8.sp
+                )
+            )
+            Text(
+                text = event.label.uppercase(),
+                style = TextStyle(
+                    color = ColorProvider(Color(0xFFBDBDBD)),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Spacer(modifier = GlanceModifier.height(4.dp))
+            Image(
+                provider = ImageProvider(timeBitmap),
+                contentDescription = null,
+                modifier = GlanceModifier.height(30.dp)
+            )
+            Spacer(modifier = GlanceModifier.height(4.dp))
+            Text(
+                text = "IN ${event.timeRemaining.uppercase().replace(" LEFT", "").trim()}",
+                style = TextStyle(
+                    color = ColorProvider(Color(accentColor)),
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
+        Spacer(modifier = GlanceModifier.width(4.dp))
+        Image(
+            provider = ImageProvider(iconBitmap),
+            contentDescription = null,
+            modifier = GlanceModifier.size(64.dp)
         )
     }
 }
