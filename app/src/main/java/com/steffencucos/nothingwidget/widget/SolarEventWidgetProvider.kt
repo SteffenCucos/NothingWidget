@@ -60,7 +60,7 @@ class SolarEventWidgetProvider : AppWidgetProvider() {
             val style = WidgetPreferences.getStyle(context)
             val wide = style == WidgetStyle.NOTHING && appWidgetManager.getAppWidgetOptions(appWidgetId).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) >= WIDE_MIN_WIDTH_DP
             val dark = isDarkMode(context)
-            val accent = WidgetPreferences.getAccentColor(context).argb
+            val accent = WidgetPreferences.getAccentColorArgb(context)
             val iconDp = if (style != WidgetStyle.NOTHING) 40 else if (wide) 72 else 54
             val icon = PhaseWatchIconRenderer.render(dpToPx(context, iconDp), phaseFor(event.label, event.progressPercent), dark, accent)
             val pendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
