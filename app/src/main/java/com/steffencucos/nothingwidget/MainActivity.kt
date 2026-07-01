@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
@@ -22,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.steffencucos.nothingwidget.location.DeviceLocationProvider
 import com.steffencucos.nothingwidget.location.LocationStore
 import com.steffencucos.nothingwidget.solar.SolarEventRepository
+import com.steffencucos.nothingwidget.widget.ColorWheelView
 import com.steffencucos.nothingwidget.widget.PhaseWatchIconRenderer
 import com.steffencucos.nothingwidget.widget.SolarEventWidgetProvider
 import com.steffencucos.nothingwidget.widget.TimeDotMatrixRenderer
@@ -44,6 +46,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var styleClassicButton: Button
     private lateinit var styleNothingButton: Button
     private lateinit var accentColorLabel: TextView
+    private lateinit var customAccentLabel: TextView
+    private lateinit var colorWheelView: ColorWheelView
     private val accentColorButtons = mutableMapOf<WidgetAccentColor, Button>()
     private lateinit var dotSizeLabel: TextView
     private lateinit var dotSizeSlider: SeekBar
@@ -135,7 +139,7 @@ class MainActivity : AppCompatActivity() {
         renderTimeSimulationState()
     }
 
-    private fun buildConfigurationView(): LinearLayout {
+    private fun buildConfigurationView(): View {
         accentColorButtons.clear()
         val backButton = Button(this).apply {
             text = "Back to preview"
@@ -194,6 +198,19 @@ class MainActivity : AppCompatActivity() {
                 })
             }
         }
+        customAccentLabel = TextView(this).apply {
+            textSize = 14f
+            setTextColor(0xFFBDBDBD.toInt())
+        }
+        colorWheelView = ColorWheelView(this).apply {
+            setSelectedColor(WidgetPreferences.getAccentColorArgb(this@MainActivity))
+            onColorChanged = { color -> setCustomAccentColor(color) }
+            layoutParams = LinearLayout.LayoutParams(dp(220), dp(220)).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                topMargin = dp(6)
+                bottomMargin = dp(10)
+            }
+        }
         dotSizeLabel = TextView(this).apply {
             textSize = 14f
             setTextColor(0xFFBDBDBD.toInt())
@@ -236,9 +253,9 @@ class MainActivity : AppCompatActivity() {
             textSize = 12f
             setTextColor(0xFFBDBDBD.toInt())
         }
-        return LinearLayout(this).apply {
+
+        val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(32), dp(48), dp(32), dp(48))
             setBackgroundColor(0xFF111111.toInt())
             addView(backButton)
@@ -249,12 +266,19 @@ class MainActivity : AppCompatActivity() {
             addView(styleRow)
             addView(accentColorLabel)
             addView(accentColorGrid)
+            addView(customAccentLabel)
+            addView(colorWheelView)
             addView(dotSizeLabel)
             addView(dotSizeSlider)
             addView(timeSimulationSwitch)
             addView(timeSpeedLabel)
             addView(timeSpeedSlider)
             addView(timeSimulationSubtitle)
+        }
+
+        return ScrollView(this).apply {
+            setBackgroundColor(0xFF111111.toInt())
+            addView(content, ScrollView.LayoutParams(ScrollView.LayoutParams.MATCH_PARENT, ScrollView.LayoutParams.WRAP_CONTENT))
         }
     }
 
@@ -272,9 +296,9 @@ class MainActivity : AppCompatActivity() {
         val view = previewView ?: return
         val event = solarEventRepository.getNextEvent(WidgetPreferences.currentWidgetTime(this))
         val style = WidgetPreferences.getStyle(this)
-        val accentColor = WidgetPreferences.getAccentColor(this).argb
+        val accentColor = WidgetPreferences.getAccentColorArgb(this)
         val dark = isDarkMode()
-        val iconDp = if (style == WidgetStyle.NOTHING) 110 else 40
+        val iconDp = if (style == WidgetStyle.NOTHING) 54 else 40
         val iconBitmap = PhaseWatchIconRenderer.render(dp(iconDp), phaseFor(event.label, event.progressPercent), dark, accentColor)
         view.findViewById<TextView>(R.id.eventStatus)?.text = event.statusText.uppercase()
         view.findViewById<ImageView>(R.id.eventIcon)?.setImageBitmap(iconBitmap)
@@ -282,10 +306,10 @@ class MainActivity : AppCompatActivity() {
             val timeColor = if (dark) 0xFFFFFFFF.toInt() else 0xFF111111.toInt()
             view.findViewById<TextView>(R.id.eventLabel)?.apply {
                 text = event.label.uppercase()
-                textSize = 11f
+                textSize = 8f
             }
             view.findViewById<ImageView>(R.id.eventTime)?.setImageBitmap(
-                TimeDotMatrixRenderer.render(event.displayTime, dp(36), timeColor)
+                TimeDotMatrixRenderer.render(event.displayTime, dp(20), timeColor)
             )
             view.findViewById<TextView>(R.id.eventRemaining)?.text = remainingText(event.timeRemaining)
             applyAccentColorToPreview(view, accentColor)
@@ -388,6 +412,12 @@ class MainActivity : AppCompatActivity() {
         refreshActualWidget(force = true)
     }
 
+    private fun setCustomAccentColor(color: Int) {
+        WidgetPreferences.setCustomAccentColor(this, color)
+        renderAccentColorState()
+        refreshActualWidget(force = true)
+    }
+
     private fun setDotTextSize(sizeSp: Int) {
         WidgetPreferences.setDotTextSizeSp(this, sizeSp)
         renderDotSizeState()
@@ -414,10 +444,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun renderAccentColorState() {
         val currentAccentColor = WidgetPreferences.getAccentColor(this)
-        accentColorLabel.text = "Accent color: ${currentAccentColor.displayName}"
+        val currentAccentArgb = WidgetPreferences.getAccentColorArgb(this)
+        val usingCustomAccent = WidgetPreferences.isCustomAccentColor(this)
+        accentColorLabel.text = "Accent color: ${WidgetPreferences.getAccentColorDisplayName(this)}"
         accentColorButtons.forEach { (accentColor, button) ->
-            button.text = if (accentColor == currentAccentColor) "✓ ${accentColor.displayName}" else accentColor.displayName
+            button.text = if (!usingCustomAccent && accentColor == currentAccentColor) "✓ ${accentColor.displayName}" else accentColor.displayName
         }
+        customAccentLabel.text = "${if (usingCustomAccent) "✓ " else ""}Colour wheel: ${formatHexColor(currentAccentArgb)}"
+        colorWheelView.setSelectedColor(currentAccentArgb)
     }
 
     private fun renderDotSizeState() {
@@ -457,6 +491,8 @@ class MainActivity : AppCompatActivity() {
         val luminance = 0.299 * red + 0.587 * green + 0.114 * blue
         return if (luminance > 150.0) 0xFF111111.toInt() else 0xFFFFFFFF.toInt()
     }
+
+    private fun formatHexColor(color: Int): String = "#%06X".format(color and 0x00FFFFFF)
 
     private fun renderPermissionNeeded() {
         statusText.text = getString(R.string.permission_needed_message)
