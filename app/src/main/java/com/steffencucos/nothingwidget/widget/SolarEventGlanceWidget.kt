@@ -52,7 +52,7 @@ object SolarEventGlanceWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val event = SolarEventRepository(context).getNextEvent(WidgetPreferences.currentWidgetTime(context))
-        val accent = WidgetPreferences.getAccentColor(context).argb
+        val accent = WidgetPreferences.getAccentColorArgb(context)
         val compactIconBitmap = PhaseWatchIconRenderer.render(
             sizePx = 140,
             phase = phaseFor(event),
