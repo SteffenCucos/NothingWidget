@@ -278,7 +278,7 @@ class MainActivity : AppCompatActivity() {
 
         return ScrollView(this).apply {
             setBackgroundColor(0xFF111111.toInt())
-            addView(content, ScrollView.LayoutParams(ScrollView.LayoutParams.MATCH_PARENT, ScrollView.LayoutParams.WRAP_CONTENT))
+            addView(content, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         }
     }
 
