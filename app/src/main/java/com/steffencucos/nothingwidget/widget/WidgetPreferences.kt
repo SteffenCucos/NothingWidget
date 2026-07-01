@@ -18,6 +18,8 @@ object WidgetPreferences {
     private const val KEY_WIDGET_STYLE = "widget_style"
     private const val KEY_DOT_TEXT_SIZE_SP = "dot_text_size_sp"
     private const val KEY_ACCENT_COLOR = "accent_color"
+    private const val KEY_USE_CUSTOM_ACCENT_COLOR = "use_custom_accent_color"
+    private const val KEY_CUSTOM_ACCENT_COLOR = "custom_accent_color"
     private const val KEY_TIME_SIMULATION_ENABLED = "time_simulation_enabled"
     private const val KEY_TIME_SIMULATION_MULTIPLIER = "time_simulation_multiplier"
     private const val KEY_TIME_SIMULATION_REAL_ANCHOR_MS = "time_simulation_real_anchor_ms"
@@ -63,11 +65,40 @@ object WidgetPreferences {
             .getString(KEY_ACCENT_COLOR, WidgetAccentColor.RED.name)
     )
 
+    fun getAccentColorArgb(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return if (prefs.getBoolean(KEY_USE_CUSTOM_ACCENT_COLOR, false)) {
+            prefs.getInt(KEY_CUSTOM_ACCENT_COLOR, WidgetAccentColor.RED.argb) or 0xFF000000.toInt()
+        } else {
+            getAccentColor(context).argb
+        }
+    }
+
+    fun getAccentColorDisplayName(context: Context): String = if (isCustomAccentColor(context)) {
+        "Custom ${formatHexColor(getAccentColorArgb(context))}"
+    } else {
+        getAccentColor(context).displayName
+    }
+
+    fun isCustomAccentColor(context: Context): Boolean = context
+        .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getBoolean(KEY_USE_CUSTOM_ACCENT_COLOR, false)
+
     fun setAccentColor(context: Context, accentColor: WidgetAccentColor) {
         context
             .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(KEY_ACCENT_COLOR, accentColor.name)
+            .putBoolean(KEY_USE_CUSTOM_ACCENT_COLOR, false)
+            .apply()
+    }
+
+    fun setCustomAccentColor(context: Context, argb: Int) {
+        context
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(KEY_CUSTOM_ACCENT_COLOR, argb or 0xFF000000.toInt())
+            .putBoolean(KEY_USE_CUSTOM_ACCENT_COLOR, true)
             .apply()
     }
 
@@ -122,4 +153,6 @@ object WidgetPreferences {
             .putLong(KEY_TIME_SIMULATION_CLOCK_ANCHOR_MS, nowMs)
             .apply()
     }
+
+    private fun formatHexColor(color: Int): String = "#%06X".format(color and 0x00FFFFFF)
 }
